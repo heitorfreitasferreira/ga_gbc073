@@ -1,9 +1,21 @@
 package main
 
-import "math/rand"
+import (
+	"fmt"
+	"job-shop-ga/ga"
+)
 
 func main() {
-	var seed int64 = 42
-	rand.Seed(seed)
+	// Nome do arquivo de entrada
+	filename := "./benchmark/instances/abz9"
+
+	// Ler instância do problema
+	instance, err := ga.GetInstanceFromFile(filename)
+	if err != nil {
+		fmt.Println("Erro ao ler o arquivo:", err)
+		return
+	}
+	instance.GenerateInitialPopulation(5)
+	instance.Print()
 
 }
