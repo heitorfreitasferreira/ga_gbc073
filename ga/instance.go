@@ -13,7 +13,7 @@ import (
 type JobShopInstance struct {
 	numJobs     int
 	numMachines int
-	jobs        [][]int // Matriz contendo [máquina, tempo de processamento] para cada operação
+	jobs        [][]int // Matriz contendo [tempo de processamento] para cada operação
 	population  []Cromossome
 }
 
@@ -89,7 +89,7 @@ func (instance *JobShopInstance) CalculateFitness(cromossome *Cromossome) int {
 
 	// Iterar sobre o genoma do indivíduo (sequência de jobs)
 	for i := 0; i < len(cromossome.genome); i++ {
-		jobID := cromossome.genome[i] - 1     // Identifica o job (ajuste para 0-indexado)
+		jobID := cromossome.genome[i]         // Identifica o job (ajuste para 0-indexado)
 		machineID := i % instance.numMachines // Identifica a máquina (cíclico sobre as máquinas)
 
 		processTime := instance.jobs[jobID][machineID] // Tempo de processamento do job na máquina atual
@@ -123,5 +123,9 @@ func (instance *JobShopInstance) Print() {
 	fmt.Println("População:")
 	for i, ind := range instance.population {
 		fmt.Printf("Indivíduo %d Fitness %d\n", i+1, instance.CalculateFitness(&ind))
+
+		for j := 0; j < len(ind.genome); j += instance.numMachines {
+			fmt.Printf("%v\n", ind.genome[j:j+instance.numMachines])
+		}
 	}
 }
