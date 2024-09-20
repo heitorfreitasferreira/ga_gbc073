@@ -14,7 +14,7 @@ type JobShopInstance struct {
 	numJobs     int
 	numMachines int
 	jobs        [][]int // Matriz contendo [tempo de processamento] para cada operação
-	population  []Cromossome
+	Population  []Cromossome
 }
 
 // GetInstanceFromFile lê uma instância do problema de um arquivo de texto
@@ -75,9 +75,9 @@ func GetInstanceFromFile(filename string) (*JobShopInstance, error) {
 }
 
 func (instance *JobShopInstance) GenerateInitialPopulation(size int) {
-	instance.population = make([]Cromossome, size)
+	instance.Population = make([]Cromossome, size)
 	for i := 0; i < size; i++ {
-		instance.population[i] = GenerateCromossome(instance)
+		instance.Population[i] = GenerateCromossome(instance)
 	}
 }
 
@@ -135,6 +135,39 @@ func (instance *JobShopInstance) CalculateMakespan(cromossome *Cromossome) int {
 	return fitness
 }
 
+// Função para realizar o crossover entre dois indivíduos
+func (instance *JobShopInstance) Crossover(p1, p2 Cromossome) (Cromossome, Cromossome) {
+	// Escolher aleatoriamente o índice de início e término para o trecho a ser trocado
+	start1 := Source.Intn(len(p1.genome))
+	end1 := Source.Intn(len(p1.genome)-start1) + start1
+
+	start2 := Source.Intn(len(p2.genome))
+	end2 := Source.Intn(len(p2.genome)-start2) + start2
+
+	// Extrair pedaços necessários para o crossover
+	body1 := p1.genome[start1 : end1+1]
+	body2 := p2.genome[start2 : end2+1]
+	head1 := p1.genome[:start1]
+	tail1 := p1.genome[end1+1:]
+	head2 := p2.genome[:start2]
+	tail2 := p2.genome[end2+1:]
+
+	// Ajustar os filhos para remover excessos e adicionar genes ausentes
+	o1 := fixGenes(appendMultipleSlices(head1, body2, tail1), instance.numJobs, instance.numMachines)
+	o2 := fixGenes(appendMultipleSlices(head2, body1, tail2), instance.numJobs, instance.numMachines)
+
+	return Cromossome{genome: o1}, Cromossome{genome: o2}
+}
+
+func (instance *JobShopInstance) Mutate(cromossome Cromossome) Cromossome {
+	// Escolher aleatoriamente dois genes para trocar
+	idx1 := Source.Intn(len(cromossome.genome))
+	idx2 := Source.Intn(len(cromossome.genome))
+	// Trocar os genes
+	cromossome.genome[idx1], cromossome.genome[idx2] = cromossome.genome[idx2], cromossome.genome[idx1]
+	return cromossome
+}
+
 func (instance *JobShopInstance) Print() {
 	fmt.Println("Número de jobs:", instance.numJobs)
 	fmt.Println("Número de máquinas:", instance.numMachines)
@@ -143,7 +176,7 @@ func (instance *JobShopInstance) Print() {
 		fmt.Printf("Job %2d %v\n", i+1, job)
 	}
 	fmt.Println("População:")
-	for i, ind := range instance.population {
+	for i, ind := range instance.Population {
 		fmt.Printf("Indivíduo %d Makespan %d\n", i+1, instance.CalculateMakespan(&ind))
 	}
 }

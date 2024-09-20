@@ -3,14 +3,14 @@ package ga
 import (
 	"math"
 	"math/rand"
-	"time"
 )
 
+var Source = rand.New(rand.NewSource(42))
+
 func shuffle(arr []int) {
-	source := rand.New(rand.NewSource(time.Now().UnixNano()))
 	n := len(arr)
 	for i := n - 1; i > 0; i-- {
-		j := source.Intn(i + 1)
+		j := Source.Intn(i + 1)
 		arr[i], arr[j] = arr[j], arr[i]
 	}
 }
@@ -23,4 +23,13 @@ func max(arr []int) int {
 		}
 	}
 	return maxVal
+}
+
+// AppendMultipleSlices appends multiple slices into one.
+func appendMultipleSlices(slices ...[]int) []int {
+	var result []int
+	for _, slice := range slices {
+		result = append(result, slice...)
+	}
+	return result
 }
