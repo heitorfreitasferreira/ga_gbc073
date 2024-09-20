@@ -5,20 +5,26 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // JobShopInstance representa uma instância do problema de job shop scheduling
 type JobShopInstance struct {
-	numJobs     int
-	numMachines int
-	jobs        [][]int // Matriz contendo [tempo de processamento] para cada operação
-	Population  []Cromossome
+	numJobs        int
+	numMachines    int
+	jobs           [][]int // Matriz contendo [tempo de processamento] para cada operação
+	Population     []Cromossome
+	mutationRate   float64
+	crossoverRate  float64
+	populationSize int
+	maxGenerations int
 }
 
 // GetInstanceFromFile lê uma instância do problema de um arquivo de texto
-func GetInstanceFromFile(filename string) (*JobShopInstance, error) {
+func GetInstanceFromFile(filename string, mutationRate, crossoverRate float64, populationSize, maxGenerations int) (*JobShopInstance, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -68,15 +74,19 @@ func GetInstanceFromFile(filename string) (*JobShopInstance, error) {
 	}
 
 	return &JobShopInstance{
-		numJobs:     numJobs,
-		numMachines: numMachines,
-		jobs:        jobs,
+		numJobs:        numJobs,
+		numMachines:    numMachines,
+		jobs:           jobs,
+		mutationRate:   mutationRate,
+		crossoverRate:  crossoverRate,
+		populationSize: populationSize,
+		maxGenerations: maxGenerations,
 	}, nil
 }
 
-func (instance *JobShopInstance) GenerateInitialPopulation(size int) {
-	instance.Population = make([]Cromossome, size)
-	for i := 0; i < size; i++ {
+func (instance *JobShopInstance) GenerateInitialPopulation() {
+	instance.Population = make([]Cromossome, instance.populationSize)
+	for i := 0; i < instance.populationSize; i++ {
 		instance.Population[i] = GenerateCromossome(instance)
 	}
 }
@@ -159,24 +169,62 @@ func (instance *JobShopInstance) Crossover(p1, p2 Cromossome) (Cromossome, Cromo
 	return Cromossome{genome: o1}, Cromossome{genome: o2}
 }
 
-func (instance *JobShopInstance) Mutate(cromossome Cromossome) Cromossome {
+func (instance *JobShopInstance) Mutate(cromossome Cromossome) {
 	// Escolher aleatoriamente dois genes para trocar
 	idx1 := Source.Intn(len(cromossome.genome))
 	idx2 := Source.Intn(len(cromossome.genome))
 	// Trocar os genes
 	cromossome.genome[idx1], cromossome.genome[idx2] = cromossome.genome[idx2], cromossome.genome[idx1]
-	return cromossome
+}
+
+func (instance *JobShopInstance) Run() {
+	startTime := time.Now()
+	instance.GenerateInitialPopulation()
+
+	for i := 0; i < instance.maxGenerations; i++ {
+		fmt.Printf("\rGeração %d", i)
+		// Emabaralha a população
+		shuffle(instance.Population)
+
+		children := make([]Cromossome, 0)
+		for j := 0; j < int(float64(instance.populationSize)*instance.crossoverRate); j += 2 {
+			parent1 := instance.Population[j]
+			parent2 := instance.Population[j+1]
+			child1, child2 := instance.Crossover(parent1, parent2)
+			children = append(children, child1, child2)
+		}
+
+		// Mutação na população
+		for j := 0; j < int(float64(instance.populationSize)*instance.mutationRate); j++ {
+			instance.Mutate(instance.Population[j])
+		}
+
+		allIndividuals := append(instance.Population, children...)
+		sort.Slice(allIndividuals, func(i, j int) bool {
+			return instance.CalculateMakespan(&allIndividuals[i]) < instance.CalculateMakespan(&allIndividuals[j])
+		})
+
+		// Copy the best populationSize individuals to the next generation
+		for j := 0; j < instance.populationSize; j++ {
+			instance.Population[j] = allIndividuals[j]
+		}
+	}
+
+	instance.Print()
+	fmt.Println("Melhor indivíduo:", instance.Population[0])
+	fmt.Println("Makespan:", instance.CalculateMakespan(&instance.Population[0]))
+	fmt.Println("Tempo de execução:", time.Since(startTime))
 }
 
 func (instance *JobShopInstance) Print() {
 	fmt.Println("Número de jobs:", instance.numJobs)
 	fmt.Println("Número de máquinas:", instance.numMachines)
+	fmt.Println("Taxa de mutação:", instance.mutationRate)
+	fmt.Println("Taxa de crossover:", instance.crossoverRate)
+	fmt.Println("Tamanho da população:", instance.populationSize)
+	fmt.Println("Número máximo de gerações:", instance.maxGenerations)
 	fmt.Println("Jobs:")
 	for i, job := range instance.jobs {
 		fmt.Printf("Job %2d %v\n", i+1, job)
-	}
-	fmt.Println("População:")
-	for i, ind := range instance.Population {
-		fmt.Printf("Indivíduo %d Makespan %d\n", i+1, instance.CalculateMakespan(&ind))
 	}
 }
