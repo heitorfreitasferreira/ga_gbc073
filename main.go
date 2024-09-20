@@ -7,7 +7,7 @@ import (
 
 func main() {
 	// Nome do arquivo de entrada
-	filename := "./benchmark/instances/abz5"
+	filename := "./benchmark/instances/abz8"
 
 	// Ler instância do problema
 	instance, err := ga.GetInstanceFromFile(filename)

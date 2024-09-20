@@ -109,6 +109,6 @@ func countValues(gene int, genome []int) int {
 }
 
 // Print exibe o indivíduo gerado
-func (ind *Cromossome) Print() {
-	fmt.Println("Indivíduo:", ind.genome)
+func (ind *Cromossome) String() string {
+	return fmt.Sprintf("%v", ind.genome)
 }
