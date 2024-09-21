@@ -3,12 +3,10 @@ package ga
 import (
 	"bufio"
 	"fmt"
-	"math"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // JobShopInstance representa uma instância do problema de job shop scheduling
@@ -16,11 +14,13 @@ type JobShopInstance struct {
 	numJobs        int
 	numMachines    int
 	jobs           [][]int // Matriz contendo [tempo de processamento] para cada operação
-	Population     []Cromossome
+	Population     []*Cromossome
 	mutationRate   float64
 	crossoverRate  float64
 	populationSize int
 	maxGenerations int
+
+	evolutionStats
 }
 
 // GetInstanceFromFile lê uma instância do problema de um arquivo de texto
@@ -34,8 +34,6 @@ func GetInstanceFromFile(filename string, mutationRate, crossoverRate float64, p
 	scanner := bufio.NewScanner(file)
 	var numJobs, numMachines int
 	var jobs [][]int
-
-	fmt.Println("Lendo instância do arquivo", filename)
 
 	// Ignorar cabeçalhos e ler a primeira linha relevante com o número de jobs e máquinas
 	for scanner.Scan() {
@@ -51,8 +49,6 @@ func GetInstanceFromFile(filename string, mutationRate, crossoverRate float64, p
 		}
 	}
 
-	fmt.Printf("%d %d\n", numJobs, numMachines)
-
 	// Inicializa a matriz de jobs
 	jobs = make([][]int, numJobs)
 
@@ -63,7 +59,6 @@ func GetInstanceFromFile(filename string, mutationRate, crossoverRate float64, p
 			parts := strings.Fields(line)
 			jobTimes := make([]int, numMachines)
 
-			fmt.Println(parts)
 			for j := 0; j < len(parts); j += 2 {
 				machineID, _ := strconv.Atoi(parts[j])
 				jobTimeInMachine, _ := strconv.Atoi(parts[j+1])
@@ -81,72 +76,27 @@ func GetInstanceFromFile(filename string, mutationRate, crossoverRate float64, p
 		crossoverRate:  crossoverRate,
 		populationSize: populationSize,
 		maxGenerations: maxGenerations,
+		evolutionStats: evolutionStats{
+			best:   make([]int, maxGenerations),
+			worst:  make([]int, maxGenerations),
+			median: make([]int, maxGenerations),
+			avg:    make([]float64, maxGenerations),
+			stdDev: make([]float64, maxGenerations),
+		},
 	}, nil
 }
 
 func (instance *JobShopInstance) GenerateInitialPopulation() {
-	instance.Population = make([]Cromossome, instance.populationSize)
+	instance.Population = make([]*Cromossome, instance.populationSize)
 	for i := 0; i < instance.populationSize; i++ {
-		instance.Population[i] = GenerateCromossome(instance)
+
+		ind := GenerateCromossome(instance)
+		instance.Population[i] = &ind
 	}
-}
-
-// CalcularFitness avalia a aptidão de um indivíduo com base no tempo total decorrido
-func (instance *JobShopInstance) CalculateMakespan(cromossome *Cromossome) int {
-	// Inicializar tempos de término para cada job e máquina
-	jobCompletion := make([]int, instance.numJobs)           // Tempo de término dos jobs
-	machineAvailability := make([]int, instance.numMachines) // Tempo de disponibilidade das máquinas
-	unavailableMachinesByJob := make([][]bool, instance.numJobs)
-	for i := 0; i < instance.numJobs; i++ {
-		unavailableMachinesByJob[i] = make([]bool, instance.numMachines)
-	}
-
-	// Iterar sobre o genoma do indivíduo (sequência de jobs)
-	for i := 0; i < len(cromossome.genome); i++ {
-		jobID := cromossome.genome[i] // Identifica o job
-		bestMachineID := -1
-		bestMachineTime := math.MaxInt
-		for machineID, unavailable := range unavailableMachinesByJob[jobID] {
-			if unavailable {
-				continue
-			}
-
-			machineTime := instance.jobs[jobID][machineID] + machineAvailability[machineID]
-			if machineTime < bestMachineTime {
-				bestMachineID = machineID
-				bestMachineTime = machineTime
-			}
-		}
-		unavailableMachinesByJob[jobID][bestMachineID] = true
-
-		if bestMachineID == -1 {
-			// Descobrir maquina com menor tempo ocioso ao começar em jobCompletion[jobID]
-			panic("Não foi possível encontrar uma máquina disponível para o job")
-		}
-
-		processTime := instance.jobs[jobID][bestMachineID] // Tempo de processamento do job na máquina atual
-
-		// O job só pode começar quando a máquina estiver disponível e o job estiver pronto (término da operação anterior)
-		startTime := int(math.Max(float64(machineAvailability[bestMachineID]), float64(jobCompletion[jobID])))
-
-		// Atualizar o tempo de término da operação para o job e a máquina
-		jobCompletion[jobID] = startTime + processTime
-		machineAvailability[bestMachineID] = startTime + processTime
-	}
-
-	// O fitness é o maior tempo de conclusão entre todos os jobs
-	fitness := 0
-	for _, completionTime := range jobCompletion {
-		if completionTime > fitness {
-			fitness = completionTime
-		}
-	}
-
-	return fitness
 }
 
 // Função para realizar o crossover entre dois indivíduos
-func (instance *JobShopInstance) Crossover(p1, p2 Cromossome) (Cromossome, Cromossome) {
+func (instance *JobShopInstance) Crossover(p1, p2 *Cromossome) (Cromossome, Cromossome) {
 	// Escolher aleatoriamente o índice de início e término para o trecho a ser trocado
 	start1 := Source.Intn(len(p1.genome))
 	end1 := Source.Intn(len(p1.genome)-start1) + start1
@@ -169,29 +119,19 @@ func (instance *JobShopInstance) Crossover(p1, p2 Cromossome) (Cromossome, Cromo
 	return Cromossome{genome: o1}, Cromossome{genome: o2}
 }
 
-func (instance *JobShopInstance) Mutate(cromossome Cromossome) {
-	// Escolher aleatoriamente dois genes para trocar
-	idx1 := Source.Intn(len(cromossome.genome))
-	idx2 := Source.Intn(len(cromossome.genome))
-	// Trocar os genes
-	cromossome.genome[idx1], cromossome.genome[idx2] = cromossome.genome[idx2], cromossome.genome[idx1]
-}
-
-func (instance *JobShopInstance) Run() {
-	startTime := time.Now()
+func (instance *JobShopInstance) Run() ([]int, int) {
 	instance.GenerateInitialPopulation()
 
 	for i := 0; i < instance.maxGenerations; i++ {
-		fmt.Printf("\rGeração %d", i)
 		// Emabaralha a população
 		shuffle(instance.Population)
 
-		children := make([]Cromossome, 0)
+		children := make([]*Cromossome, 0)
 		for j := 0; j < int(float64(instance.populationSize)*instance.crossoverRate); j += 2 {
 			parent1 := instance.Population[j]
 			parent2 := instance.Population[j+1]
 			child1, child2 := instance.Crossover(parent1, parent2)
-			children = append(children, child1, child2)
+			children = append(children, &child1, &child2)
 		}
 
 		// Mutação na população
@@ -200,20 +140,24 @@ func (instance *JobShopInstance) Run() {
 		}
 
 		allIndividuals := append(instance.Population, children...)
+
+		// Calcular o makespan para cada indivíduo
+		for _, individual := range allIndividuals {
+			individual.fitness = instance.CalculateMakespan(individual)
+		}
+
 		sort.Slice(allIndividuals, func(i, j int) bool {
-			return instance.CalculateMakespan(&allIndividuals[i]) < instance.CalculateMakespan(&allIndividuals[j])
+			return allIndividuals[i].fitness < allIndividuals[j].fitness
 		})
 
 		// Copy the best populationSize individuals to the next generation
 		for j := 0; j < instance.populationSize; j++ {
 			instance.Population[j] = allIndividuals[j]
 		}
+		instance.calculateStats(i)
 	}
 
-	instance.Print()
-	fmt.Println("Melhor indivíduo:", instance.Population[0])
-	fmt.Println("Makespan:", instance.CalculateMakespan(&instance.Population[0]))
-	fmt.Println("Tempo de execução:", time.Since(startTime))
+	return instance.Population[0].genome, instance.Population[0].fitness
 }
 
 func (instance *JobShopInstance) Print() {

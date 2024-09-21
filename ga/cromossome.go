@@ -2,11 +2,13 @@ package ga
 
 import (
 	"fmt"
+	"math"
 )
 
 // Cromossome representa um indivíduo na abordagem de representação indireta
 type Cromossome struct {
-	genome []int
+	genome  []int
+	fitness int
 }
 
 // GenerateCromossome cria um indivíduo com a abordagem de representação indireta
@@ -28,7 +30,7 @@ func GenerateCromossome(instance *JobShopInstance) Cromossome {
 	// Embaralhar os genes para criar um indivíduo aleatório (aqui pode usar alguma função de shuffle se necessário)
 	// shuffle(genome) // Se precisar de embaralhamento
 
-	return Cromossome{genome: genome}
+	return Cromossome{genome: genome, fitness: -1}
 }
 
 func countJobsOccurrences(genome []int) map[int]int {
@@ -67,6 +69,68 @@ func fixGenes(offspring []int, numJobs int, numMachines int) []int {
 	}
 
 	return offspring
+}
+
+// CalcularFitness avalia a aptidão de um indivíduo com base no tempo total decorrido
+func (instance *JobShopInstance) CalculateMakespan(cromossome *Cromossome) int {
+	// Inicializar tempos de término para cada job e máquina
+	jobCompletion := make([]int, instance.numJobs)           // Tempo de término dos jobs
+	machineAvailability := make([]int, instance.numMachines) // Tempo de disponibilidade das máquinas
+	unavailableMachinesByJob := make([][]bool, instance.numJobs)
+	for i := 0; i < instance.numJobs; i++ {
+		unavailableMachinesByJob[i] = make([]bool, instance.numMachines)
+	}
+
+	// Iterar sobre o genoma do indivíduo (sequência de jobs)
+	for i := 0; i < len(cromossome.genome); i++ {
+		jobID := cromossome.genome[i] // Identifica o job
+		bestMachineID := -1
+		bestMachineTime := math.MaxInt
+		for machineID, unavailable := range unavailableMachinesByJob[jobID] {
+			if unavailable {
+				continue
+			}
+
+			machineTime := instance.jobs[jobID][machineID] + machineAvailability[machineID]
+			if machineTime < bestMachineTime {
+				bestMachineID = machineID
+				bestMachineTime = machineTime
+			}
+		}
+		unavailableMachinesByJob[jobID][bestMachineID] = true
+
+		if bestMachineID == -1 {
+			// Descobrir maquina com menor tempo ocioso ao começar em jobCompletion[jobID]
+			panic("Não foi possível encontrar uma máquina disponível para o job")
+		}
+
+		processTime := instance.jobs[jobID][bestMachineID] // Tempo de processamento do job na máquina atual
+
+		// O job só pode começar quando a máquina estiver disponível e o job estiver pronto (término da operação anterior)
+		startTime := int(math.Max(float64(machineAvailability[bestMachineID]), float64(jobCompletion[jobID])))
+
+		// Atualizar o tempo de término da operação para o job e a máquina
+		jobCompletion[jobID] = startTime + processTime
+		machineAvailability[bestMachineID] = startTime + processTime
+	}
+
+	// O fitness é o maior tempo de conclusão entre todos os jobs
+	fitness := 0
+	for _, completionTime := range jobCompletion {
+		if completionTime > fitness {
+			fitness = completionTime
+		}
+	}
+
+	return fitness
+}
+
+func (instance *JobShopInstance) Mutate(cromossome *Cromossome) {
+	// Escolher aleatoriamente dois genes para trocar
+	idx1 := Source.Intn(len(cromossome.genome))
+	idx2 := Source.Intn(len(cromossome.genome))
+	// Trocar os genes
+	cromossome.genome[idx1], cromossome.genome[idx2] = cromossome.genome[idx2], cromossome.genome[idx1]
 }
 
 // Print exibe o indivíduo gerado
