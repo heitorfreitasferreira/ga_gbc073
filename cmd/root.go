@@ -40,4 +40,5 @@ func init() {
 	rootCmd.PersistentFlags().Float64("cross", 0.4, "Experiment crossover rate")
 	rootCmd.PersistentFlags().Int("pop", 60, "Experiment population size")
 	rootCmd.PersistentFlags().Int("gen", 1000, "Experiment max generations")
+	rootCmd.PersistentFlags().Bool("csv", false, "Exportar estatísticas a un archivo CSV")
 }

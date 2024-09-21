@@ -11,6 +11,7 @@ import (
 
 // JobShopInstance representa uma instância do problema de job shop scheduling
 type JobShopInstance struct {
+	name           string
 	numJobs        int
 	numMachines    int
 	jobs           [][]int // Matriz contendo [tempo de processamento] para cada operação
@@ -67,8 +68,10 @@ func GetInstanceFromFile(filename string, mutationRate, crossoverRate float64, p
 			jobs[i] = jobTimes
 		}
 	}
+	filenameParts := strings.Split(filename, "/")
 
 	return &JobShopInstance{
+		name:           strings.Split(filename, "/")[len(filenameParts)-1],
 		numJobs:        numJobs,
 		numMachines:    numMachines,
 		jobs:           jobs,
@@ -158,6 +161,10 @@ func (instance *JobShopInstance) Run() ([]int, int) {
 	}
 
 	return instance.Population[0].genome, instance.Population[0].fitness
+}
+
+func (instance JobShopInstance) ToCsv() {
+	instance.evolutionStats.save(instance.name)
 }
 
 func (instance *JobShopInstance) Print() {

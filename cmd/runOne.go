@@ -36,6 +36,10 @@ var runOneCmd = &cobra.Command{
 
 		fmt.Println("Melhor cromossomo:", cromossome)
 		fmt.Println("Makespan:", makespan)
+
+		if csv, _ := cmd.Flags().GetBool("csv"); csv {
+			instance.ToCsv()
+		}
 	},
 }
 
