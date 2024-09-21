@@ -7,6 +7,10 @@ import (
 
 var Source = rand.New(rand.NewSource(42))
 
+func InitSource(seed int64) {
+	Source = rand.New(rand.NewSource(seed))
+}
+
 func shuffle[T any](arr []T) {
 	n := len(arr)
 	for i := n - 1; i > 0; i-- {
