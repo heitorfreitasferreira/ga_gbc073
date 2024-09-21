@@ -12,7 +12,11 @@ func InitSource(seed int64) {
 }
 
 func shuffle[T any](arr []T) {
+
 	n := len(arr)
+	if n <= 1 {
+		return
+	}
 	for i := n - 1; i > 0; i-- {
 		j := Source.Intn(i + 1)
 		arr[i], arr[j] = arr[j], arr[i]
