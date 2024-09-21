@@ -15,8 +15,8 @@ type evolutionStats struct {
 }
 
 func (instance *JobShopInstance) calculateStats(generation int) {
-	best := math.MinInt
-	worst := math.MaxInt
+	best := math.MaxInt
+	worst := math.MinInt
 	sum := 0
 	var varianceSum float64
 	mkspans := make([]int, instance.populationSize)
@@ -53,7 +53,7 @@ func (instance *JobShopInstance) calculateStats(generation int) {
 }
 
 func (s evolutionStats) save(instanceName string) {
-	file, err := os.Create(fmt.Sprintf("./stats/%s.csv", instanceName))
+	file, err := os.Create(fmt.Sprintf("./benchmark/stats/%s.csv", instanceName))
 	if err != nil {
 		fmt.Println("Erro ao criar arquivo de estatísticas:", err)
 		return
