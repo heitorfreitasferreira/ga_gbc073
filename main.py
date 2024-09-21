@@ -25,11 +25,11 @@ def plot_fitness(csv_file, json_file):
         return
 
     # Plotar o gráfico de fitness
-    plt.figure(figsize=(10, 6))
-    plt.plot(df['generation'], df['best'], label='Best', marker='o')
-    plt.plot(df['generation'], df['worst'], label='Worst', marker='o')
-    plt.plot(df['generation'], df['median'], label='Median', marker='o')
-    plt.plot(df['generation'], df['average'], label='Average', marker='o')
+    plt.figure(figsize=(10, 6)) 
+    plt.plot(df['generation'], df['best'], label='Best', marker=',')
+    plt.plot(df['generation'], df['worst'], label='Worst', marker=',')
+    plt.plot(df['generation'], df['median'], label='Median', marker=',')
+    plt.plot(df['generation'], df['average'], label='Average', marker=',')
 
     # Marcar as linhas de bounds e optimum, se existirem
     if 'optimum' in benchmark and benchmark['optimum'] is not None:
