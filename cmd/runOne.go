@@ -6,6 +6,7 @@ package cmd
 import (
 	"fmt"
 	"job-shop-ga/ga"
+	"math/rand"
 
 	"github.com/spf13/cobra"
 )
@@ -24,9 +25,8 @@ var runOneCmd = &cobra.Command{
 		maxGenerations, _ := cmd.Flags().GetInt("gen")
 		seed, _ := cmd.Flags().GetInt("seed")
 
-		ga.InitSource(int64(seed))
 		// Ler instância do problema
-		instance, err := ga.GetInstanceFromFile(fileName, mutationRate, crossoverRate, populationSize, maxGenerations)
+		instance, err := ga.GetInstanceFromFile(fileName, mutationRate, crossoverRate, populationSize, maxGenerations, rand.New(rand.NewSource(int64(seed))))
 		if err != nil {
 			fmt.Println("Erro ao ler o arquivo:", err)
 			return

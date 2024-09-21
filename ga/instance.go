@@ -3,6 +3,7 @@ package ga
 import (
 	"bufio"
 	"fmt"
+	"math/rand"
 	"os"
 	"sort"
 	"strconv"
@@ -21,11 +22,12 @@ type JobShopInstance struct {
 	populationSize int
 	maxGenerations int
 
+	*rand.Rand
 	evolutionStats
 }
 
 // GetInstanceFromFile lê uma instância do problema de um arquivo de texto
-func GetInstanceFromFile(filename string, mutationRate, crossoverRate float64, populationSize, maxGenerations int) (*JobShopInstance, error) {
+func GetInstanceFromFile(filename string, mutationRate, crossoverRate float64, populationSize, maxGenerations int, src *rand.Rand) (*JobShopInstance, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -86,6 +88,7 @@ func GetInstanceFromFile(filename string, mutationRate, crossoverRate float64, p
 			avg:    make([]float64, maxGenerations),
 			stdDev: make([]float64, maxGenerations),
 		},
+		Rand: src,
 	}, nil
 }
 
@@ -101,11 +104,11 @@ func (instance *JobShopInstance) GenerateInitialPopulation() {
 // Função para realizar o crossover entre dois indivíduos
 func (instance *JobShopInstance) Crossover(p1, p2 *Cromossome) (Cromossome, Cromossome) {
 	// Escolher aleatoriamente o índice de início e término para o trecho a ser trocado
-	start1 := Source.Intn(len(p1.genome))
-	end1 := Source.Intn(len(p1.genome)-start1) + start1
+	start1 := instance.Rand.Intn(len(p1.genome))
+	end1 := instance.Rand.Intn(len(p1.genome)-start1) + start1
 
-	start2 := Source.Intn(len(p2.genome))
-	end2 := Source.Intn(len(p2.genome)-start2) + start2
+	start2 := instance.Rand.Intn(len(p2.genome))
+	end2 := instance.Rand.Intn(len(p2.genome)-start2) + start2
 
 	// Extrair pedaços necessários para o crossover
 	body1 := p1.genome[start1 : end1+1]
@@ -127,7 +130,7 @@ func (instance *JobShopInstance) Run() ([]int, int) {
 
 	for i := 0; i < instance.maxGenerations; i++ {
 		// Emabaralha a população
-		shuffle(instance.Population)
+		shuffle(instance.Population, instance.Rand)
 
 		children := make([]*Cromossome, 0)
 		for j := 0; j < int(float64(instance.populationSize)*instance.crossoverRate); j += 2 {

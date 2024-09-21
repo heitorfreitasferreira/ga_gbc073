@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"job-shop-ga/ga"
 	"log"
+	"math/rand"
 	"os"
 	"sync"
 
@@ -33,6 +34,7 @@ to quickly create a Cobra application.`,
 		crossoverRate, _ := cmd.Flags().GetFloat64("cross")
 		populationSize, _ := cmd.Flags().GetInt("pop")
 		maxGenerations, _ := cmd.Flags().GetInt("gen")
+		seed, _ := cmd.Flags().GetInt("seed")
 		wg := sync.WaitGroup{}
 		for _, file := range files {
 			if file.IsDir() {
@@ -43,7 +45,7 @@ to quickly create a Cobra application.`,
 			go func() {
 				defer wg.Done()
 				fileName := folder + "/" + file.Name()
-				instance, err := ga.GetInstanceFromFile(fileName, mutationRate, crossoverRate, populationSize, maxGenerations)
+				instance, err := ga.GetInstanceFromFile(fileName, mutationRate, crossoverRate, populationSize, maxGenerations, rand.New(rand.NewSource(int64(seed))))
 				if err != nil {
 					fmt.Println("Erro ao ler o arquivo:", err)
 					return

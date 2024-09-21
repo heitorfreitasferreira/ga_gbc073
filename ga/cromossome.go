@@ -25,7 +25,7 @@ func GenerateCromossome(instance *JobShopInstance) Cromossome {
 		}
 	}
 
-	shuffle(genome)
+	shuffle(genome, instance.Rand)
 
 	// Embaralhar os genes para criar um indivíduo aleatório (aqui pode usar alguma função de shuffle se necessário)
 	// shuffle(genome) // Se precisar de embaralhamento
@@ -127,8 +127,8 @@ func (instance *JobShopInstance) CalculateMakespan(cromossome *Cromossome) int {
 
 func (instance *JobShopInstance) Mutate(cromossome *Cromossome) {
 	// Escolher aleatoriamente dois genes para trocar
-	idx1 := Source.Intn(len(cromossome.genome))
-	idx2 := Source.Intn(len(cromossome.genome))
+	idx1 := instance.Rand.Intn(len(cromossome.genome))
+	idx2 := instance.Rand.Intn(len(cromossome.genome))
 	// Trocar os genes
 	cromossome.genome[idx1], cromossome.genome[idx2] = cromossome.genome[idx2], cromossome.genome[idx1]
 }
