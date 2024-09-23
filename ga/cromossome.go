@@ -133,6 +133,44 @@ func (instance *JobShopInstance) Mutate(cromossome *Cromossome) {
 	cromossome.genome[idx1], cromossome.genome[idx2] = cromossome.genome[idx2], cromossome.genome[idx1]
 }
 
+// Função que retorna o fitness de um indivíduo baseado na geração de um schedule ativo
+func CalcularFitness(instance *JobShopInstance, individuo *Cromossome) int {
+	// Inicializar tempos de término para cada job e máquina
+	jobCompletion := make([]int, instance.numJobs)           // Tempo de término dos jobs
+	machineAvailability := make([]int, instance.numMachines) // Tempo de disponibilidade das máquinas
+	jobNextOperation := make([]int, instance.numJobs)        // A próxima operação a ser agendada para cada job
+
+	// Iterar sobre o genoma do indivíduo (sequência de jobs)
+	for _, jobID := range individuo.genome {
+		jobID-- // Ajustar para 0-indexado
+
+		// Pegar a próxima operação desse job
+		opIndex := jobNextOperation[jobID]
+		machineID := opIndex                           // A máquina correspondente à operação
+		processTime := instance.jobs[jobID][machineID] // Tempo de processamento do job na máquina
+
+		// Encontrar o tempo de início da operação, respeitando a precedência e a disponibilidade da máquina
+		startTime := int(math.Max(float64(jobCompletion[jobID]), float64(machineAvailability[machineID])))
+
+		// Atualizar o tempo de término da operação para o job e a máquina
+		jobCompletion[jobID] = startTime + processTime
+		machineAvailability[machineID] = startTime + processTime
+
+		// Incrementar a próxima operação a ser agendada para o job
+		jobNextOperation[jobID]++
+	}
+
+	// O fitness é o maior tempo de conclusão entre todos os jobs
+	fitness := 0
+	for _, completionTime := range jobCompletion {
+		if completionTime > fitness {
+			fitness = completionTime
+		}
+	}
+
+	return fitness
+}
+
 // Print exibe o indivíduo gerado
 func (ind *Cromossome) String() string {
 	return fmt.Sprintf("%v", ind.genome)
