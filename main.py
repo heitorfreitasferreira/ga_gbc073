@@ -2,6 +2,7 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 import sys
+import os
 
 
 def plot_fitness(csv_file, json_file, output):
@@ -62,7 +63,7 @@ def plot_fitness(csv_file, json_file, output):
     plt.tight_layout()
 
     if output == "save":
-        plt.savefig(f"{instance_name}_{instance_mod}.png")
+        plt.savefig(f"{instance_name}_{instance_model}.png")
     else:
         plt.show()
 
@@ -71,7 +72,13 @@ if __name__ == "__main__":
     if len(sys.argv) < 3 or len(sys.argv) > 4:
         print("Uso: python script.py <csv_file> <json_file> [show|save]")
     else:
-        csv_file = sys.argv[1]
+        csv_dir = sys.argv[1]
         json_file = sys.argv[2]
         output = sys.argv[3] if len(sys.argv) == 4 else "show"
-        plot_fitness(csv_file, json_file, output)
+
+        # Lista arquivos CSV no diretório e chama plot_fitness para cada um
+        dir = os.listdir(csv_dir)
+        for file in dir:
+            if file.endswith(".csv"):
+                csv_file = os.path.join(csv_dir, file)
+                plot_fitness(csv_file, json_file, output)

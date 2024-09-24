@@ -25,7 +25,7 @@ var runExpCmd = &cobra.Command{
 		maxGenerations := 50000
 		seed := 42
 
-		mods := []string{"", "mut", "tour", "mutTour"}
+		mods := []string{}
 		for _, fileName := range fileNames {
 			for _, mod := range mods {
 				// Ler instância do problema
@@ -77,6 +77,9 @@ var runExpCmd = &cobra.Command{
 
 			// Muda taxa de crossover
 			instance.Name += "_crossover_0.7"
+			instance.Run()
+			instance.ToCsv()
+
 		}
 
 	},
