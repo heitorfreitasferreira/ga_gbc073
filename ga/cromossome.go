@@ -72,7 +72,7 @@ func fixGenes(offspring []int, numJobs int, numMachines int) []int {
 }
 
 // CalcularFitness avalia a aptidão de um indivíduo com base no tempo total decorrido
-func (instance *JobShopInstance) CalculateMakespan(cromossome *Cromossome) int {
+func (instance *JobShopInstance) CalculateMakespan02(cromossome *Cromossome) int {
 	// Inicializar tempos de término para cada job e máquina
 	jobCompletion := make([]int, instance.numJobs)           // Tempo de término dos jobs
 	machineAvailability := make([]int, instance.numMachines) // Tempo de disponibilidade das máquinas
@@ -134,7 +134,7 @@ func (instance *JobShopInstance) Mutate(cromossome *Cromossome) {
 }
 
 // Função que retorna o fitness de um indivíduo baseado na geração de um schedule ativo
-func CalcularFitness(instance *JobShopInstance, individuo *Cromossome) int {
+func (instance *JobShopInstance) CalculateMakespan(individuo *Cromossome) int {
 	// Inicializar tempos de término para cada job e máquina
 	jobCompletion := make([]int, instance.numJobs)           // Tempo de término dos jobs
 	machineAvailability := make([]int, instance.numMachines) // Tempo de disponibilidade das máquinas
@@ -142,8 +142,6 @@ func CalcularFitness(instance *JobShopInstance, individuo *Cromossome) int {
 
 	// Iterar sobre o genoma do indivíduo (sequência de jobs)
 	for _, jobID := range individuo.genome {
-		jobID-- // Ajustar para 0-indexado
-
 		// Pegar a próxima operação desse job
 		opIndex := jobNextOperation[jobID]
 		machineID := opIndex                           // A máquina correspondente à operação
