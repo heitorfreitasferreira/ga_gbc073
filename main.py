@@ -18,7 +18,7 @@ def plot_fitness(csv_file, json_file, output):
 
     instance_info = csv_file.split("/")[-1].split(".")[0].split("_")
     instance_name = instance_info[0]
-    instance_model = instance_info[1]
+    instance_model = instance_info[1] if len(instance_info) > 1 else "og"
 
     # Procurar a instância no arquivo JSON
     benchmark = next(
@@ -63,14 +63,17 @@ def plot_fitness(csv_file, json_file, output):
     plt.tight_layout()
 
     if output == "save":
-        plt.savefig(f"{instance_name}_{instance_model}.png")
+        # Criar dir images se não existir
+        if not os.path.exists("./images"):
+            os.makedirs("./images")
+        plt.savefig(f"./images/{instance_name}_{instance_model}.png")
     else:
         plt.show()
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 3 or len(sys.argv) > 4:
-        print("Uso: python script.py <csv_file> <json_file> [show|save]")
+        print("Uso: python script.py <csv_dir> <json_file> [show|save]")
     else:
         csv_dir = sys.argv[1]
         json_file = sys.argv[2]
