@@ -57,15 +57,14 @@ def plot_fitness(csv_file, json_file, output):
     # Adiciona melhor e pior fitness ao gráfico
     min_fitness = df["best"].min()
     max_fitness = df["best"].max()
-    plt.figtext(0.1, 0.01, f"Min: {min_fitness}", ha="left", fontsize=10)
-    plt.figtext(0.9, 0.01, f"Max: {max_fitness}", ha="right", fontsize=10)
+    plt.figtext(0.1, 0.01, f"Min (best): {min_fitness}", ha="left", fontsize=10)
+    plt.figtext(0.9, 0.01, f"Max (best): {max_fitness}", ha="right", fontsize=10)
 
     plt.title(f"Fitness da Instância {instance_name}")
     plt.xlabel("Generation")
     plt.ylabel("Fitness")
     plt.legend()
     plt.grid(True)
-    plt.ylim(0, 3000)
 
     plt.tight_layout()
 
