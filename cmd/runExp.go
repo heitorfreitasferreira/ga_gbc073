@@ -17,7 +17,7 @@ var runExpCmd = &cobra.Command{
 	Short:   "Rodar experimentos propostos",
 	Example: "job-shop-ga runExp",
 	Run: func(cmd *cobra.Command, args []string) {
-		fileNames := []string{"./benchmark/instances/abz9", "./benchmark/instances/swv12", "./benchmark/instances/ta75"}
+		fileNames := []string{"./benchmark/instances/ft06", "./benchmark/instances/ft10", "./benchmark/instances/ft20"}
 
 		mutationRate := 0.3
 		crossoverRate := 0.4
@@ -25,7 +25,7 @@ var runExpCmd = &cobra.Command{
 		maxGenerations := 50000
 		seed := 42
 
-		mods := []string{}
+		mods := []string{"", "mut", "tour", "mutTour"}
 		for _, fileName := range fileNames {
 			for _, mod := range mods {
 				// Ler instância do problema

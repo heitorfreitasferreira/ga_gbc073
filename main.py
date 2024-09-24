@@ -37,8 +37,8 @@ def plot_fitness(csv_file, json_file, output):
     plt.plot(df["generation"], df["average"], label="Average", marker=",")
 
     # Marcar as linhas de bounds e optimum, se existirem
-    # if "optimum" in benchmark and benchmark["optimum"] is not None:
-    #   plt.axhline(y=benchmark["optimum"], color="g", linestyle="--", label="Optimum")
+    if "optimum" in benchmark and benchmark["optimum"] is not None:
+        plt.axhline(y=benchmark["optimum"], color="g", linestyle="--", label="Optimum")
 
     if "bounds" in benchmark and benchmark["bounds"]:
         plt.axhline(
