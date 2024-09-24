@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 )
 
 // JobShopInstance representa uma instância do problema de job shop scheduling
 type JobShopInstance struct {
-	name           string
+	Name           string
 	numJobs        int
 	numMachines    int
 	jobs           [][]int // Matriz contendo [tempo de processamento] para cada operação
@@ -73,7 +72,7 @@ func GetInstanceFromFile(filename string, mutationRate, crossoverRate float64, p
 	filenameParts := strings.Split(filename, "/")
 
 	return &JobShopInstance{
-		name:           strings.Split(filename, "/")[len(filenameParts)-1],
+		Name:           strings.Split(filename, "/")[len(filenameParts)-1],
 		numJobs:        numJobs,
 		numMachines:    numMachines,
 		jobs:           jobs,
@@ -125,49 +124,8 @@ func (instance *JobShopInstance) Crossover(p1, p2 *Cromossome) (Cromossome, Crom
 	return Cromossome{genome: o1}, Cromossome{genome: o2}
 }
 
-func (instance *JobShopInstance) Run() ([]int, int) {
-	instance.GenerateInitialPopulation()
-
-	for i := 0; i < instance.maxGenerations; i++ {
-		// Emabaralha a população
-		shuffle(instance.Population, instance.Rand)
-
-		children := make([]*Cromossome, 0)
-		for j := 0; j < int(float64(instance.populationSize)*instance.crossoverRate); j += 2 {
-			parent1 := instance.Population[j]
-			parent2 := instance.Population[j+1]
-			child1, child2 := instance.Crossover(parent1, parent2)
-			children = append(children, &child1, &child2)
-		}
-
-		// Mutação na população
-		for j := 0; j < int(float64(instance.populationSize)*instance.mutationRate); j++ {
-			instance.Mutate(instance.Population[j])
-		}
-
-		allIndividuals := append(instance.Population, children...)
-
-		// Calcular o makespan para cada indivíduo
-		for _, individual := range allIndividuals {
-			individual.fitness = instance.CalculateMakespan(individual)
-		}
-
-		sort.Slice(allIndividuals, func(i, j int) bool {
-			return allIndividuals[i].fitness < allIndividuals[j].fitness
-		})
-
-		// Copy the best populationSize individuals to the next generation
-		for j := 0; j < instance.populationSize; j++ {
-			instance.Population[j] = allIndividuals[j]
-		}
-		instance.calculateStats(i)
-	}
-
-	return instance.Population[0].genome, instance.Population[0].fitness
-}
-
 func (instance JobShopInstance) ToCsv() {
-	instance.evolutionStats.save(instance.name)
+	instance.evolutionStats.save(instance.Name)
 }
 
 func (instance *JobShopInstance) Print() {

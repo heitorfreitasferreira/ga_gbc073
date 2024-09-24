@@ -14,7 +14,10 @@ def plot_fitness(csv_file, json_file, output):
         benchmarks = json.load(f)
 
     # Obter o nome da instância a partir do nome do arquivo CSV
-    instance_name = csv_file.split("/")[-1].split(".")[0]
+
+    instance_info = csv_file.split("/")[-1].split(".")[0].split("_")
+    instance_name = instance_info[0]
+    instance_model = instance_info[1]
 
     # Procurar a instância no arquivo JSON
     benchmark = next(
@@ -33,8 +36,8 @@ def plot_fitness(csv_file, json_file, output):
     plt.plot(df["generation"], df["average"], label="Average", marker=",")
 
     # Marcar as linhas de bounds e optimum, se existirem
-    if "optimum" in benchmark and benchmark["optimum"] is not None:
-        plt.axhline(y=benchmark["optimum"], color="g", linestyle="--", label="Optimum")
+    # if "optimum" in benchmark and benchmark["optimum"] is not None:
+    #   plt.axhline(y=benchmark["optimum"], color="g", linestyle="--", label="Optimum")
 
     if "bounds" in benchmark and benchmark["bounds"]:
         plt.axhline(
@@ -59,7 +62,7 @@ def plot_fitness(csv_file, json_file, output):
     plt.tight_layout()
 
     if output == "save":
-        plt.savefig(f"{instance_name}.png")
+        plt.savefig(f"{instance_name}_{instance_mod}.png")
     else:
         plt.show()
 

@@ -6,7 +6,6 @@ import (
 )
 
 func shuffle[T any](arr []T, source *rand.Rand) {
-
 	n := len(arr)
 	if n <= 1 {
 		return

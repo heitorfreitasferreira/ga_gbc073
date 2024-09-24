@@ -15,7 +15,7 @@ import (
 var runOneCmd = &cobra.Command{
 	Use:     "runOne",
 	Short:   "Rodar uma instância do problema",
-	Example: "job-shop-ga runOne --mut 0.3 --cross 0.4 --pop 60 --gen 1000 --seed 42 --instance abz6",
+	Example: "job-shop-ga runOne --mut 0.3 --cross 0.4 --pop 60 --gen 1000 --seed 42 --instance abz8",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		fileName, _ := cmd.Flags().GetString("instance")
@@ -24,6 +24,7 @@ var runOneCmd = &cobra.Command{
 		populationSize, _ := cmd.Flags().GetInt("pop")
 		maxGenerations, _ := cmd.Flags().GetInt("gen")
 		seed, _ := cmd.Flags().GetInt("seed")
+		mod, _ := cmd.Flags().GetString("mod")
 
 		// Ler instância do problema
 		instance, err := ga.GetInstanceFromFile(fileName, mutationRate, crossoverRate, populationSize, maxGenerations, rand.New(rand.NewSource(int64(seed))))
@@ -31,11 +32,17 @@ var runOneCmd = &cobra.Command{
 			fmt.Println("Erro ao ler o arquivo:", err)
 			return
 		}
-		instance.GenerateInitialPopulation()
-		cromossome, makespan := instance.Run()
 
-		fmt.Println("Melhor cromossomo:", cromossome)
-		fmt.Println("Makespan:", makespan)
+		switch mod {
+		case "":
+			instance.Run()
+		case "mut":
+			instance.RunModMutation()
+		case "tour":
+			instance.RunModTournament()
+		case "mutTour":
+			instance.RunModTournamentMutation()
+		}
 
 		if csv, _ := cmd.Flags().GetBool("csv"); csv {
 			instance.ToCsv()
@@ -55,4 +62,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	runOneCmd.Flags().String("instance", "./benchmark/instances/abz6", "Nome da instância do problema")
+	runOneCmd.Flags().String("mod", "", "Modificação a ser executada")
 }
