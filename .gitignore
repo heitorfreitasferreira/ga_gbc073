@@ -26,4 +26,3 @@ go.work.sum
 
 # Benchmark files
 benchmark/
-*.out

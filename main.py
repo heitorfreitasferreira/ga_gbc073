@@ -70,9 +70,10 @@ def plot_fitness(csv_file, json_file, output):
 
     if output == "save":
         # Criar dir images se não existir
-        if not os.path.exists("./images_02"):
-            os.makedirs("./images_02")
-        plt.savefig(f"./images_02/{instance_name}_{instance_model}.png")
+        images_path = "./benchmark/images"
+        if not os.path.exists(images_path):
+            os.makedirs(images_path)
+        plt.savefig(f"{images_path}/{instance_name}_{instance_model}.png")
     else:
         plt.show()
 
