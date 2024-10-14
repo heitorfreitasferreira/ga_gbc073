@@ -49,6 +49,11 @@ def plot_stats(csv_file, json_file, output):
             label="Lower Bound",
         )
 
+    min_fitness = df["makespan"].min()
+    max_fitness = df["makespan"].max()
+    plt.figtext(0.1, 0.01, f"Min (makespan): {min_fitness}", ha="left", fontsize=10)
+    plt.figtext(0.9, 0.01, f"Max (makespan): {max_fitness}", ha="right", fontsize=10)
+
     plt.title(f"Melhor partícula por iteração ({instance_name})")
     plt.xlabel("Iteração")
     plt.ylabel("Makespan")
