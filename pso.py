@@ -14,9 +14,8 @@ def plot_stats(csv_file, json_file, output):
 
     # Obter o nome da instância a partir do nome do arquivo CSV
 
-    instance_info = csv_file.split("/")[-1].split(".")[0].split("_")
-    instance_name = instance_info[0]
-    instance_model = instance_info[1] if len(instance_info) > 1 else "og"
+    file_name = csv_file.split("/")[-1]
+    instance_name = file_name.split("_")[0]
 
     # Procurar a instância no arquivo JSON
     benchmark = next(
@@ -54,7 +53,7 @@ def plot_stats(csv_file, json_file, output):
     plt.figtext(0.1, 0.01, f"Min (makespan): {min_fitness}", ha="left", fontsize=10)
     plt.figtext(0.9, 0.01, f"Max (makespan): {max_fitness}", ha="right", fontsize=10)
 
-    plt.title(f"Melhor partícula por iteração ({instance_name})")
+    plt.title(f"Melhor partícula por iteração ({file_name})")
     plt.xlabel("Iteração")
     plt.ylabel("Makespan")
     plt.legend()
@@ -67,7 +66,7 @@ def plot_stats(csv_file, json_file, output):
         # Criar dir images se não existir
         if not os.path.exists(images_path):
             os.makedirs(images_path)
-        plt.savefig(f"{images_path}/{instance_name}_{instance_model}.png")
+        plt.savefig(f"{images_path}/{file_name}.png")
     else:
         plt.show()
 

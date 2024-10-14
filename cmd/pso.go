@@ -36,47 +36,63 @@ to quickly create a Cobra application.`,
 		}
 
 		seed := 42
-		weights := []float64{0.2, 0.3, 0.5}
-		swarmSize := 20
+		allWeights := [][]float64{{0.3, 0.5, 0.2}, {0.5, 0.2, 0.3}, {0.2, 0.5, 0.3}}
+		swarmSizes := []int{50, 100, 150}
 		maxIterations := 50
 
 		for _, fileName := range fileNames {
-			instanceName := strings.Split(fileName, "instances/")[1]
-			fmt.Println("Running instance", instanceName)
+			for _, swarmSize := range swarmSizes {
+				for _, weights := range allWeights {
+					instanceName := strings.Split(fileName, "instances/")[1]
+					fmt.Println("Running instance", instanceName)
+					fmt.Println("\tWeights:", weights)
+					fmt.Println("\tSwarm size:", swarmSize)
 
-			randSource := rand.New(rand.NewSource(int64(seed)))
-			instance, error := job_shop_pso.GetInstanceFromFile(
-				fileName,
-				randSource,
-				weights,
-				swarmSize,
-				maxIterations,
-			)
+					randSource := rand.New(rand.NewSource(int64(seed)))
+					instance, error := job_shop_pso.GetInstanceFromFile(
+						fileName,
+						randSource,
+						weights,
+						swarmSize,
+						maxIterations,
+					)
 
-			if error != nil {
-				fmt.Println("Erro ao ler o arquivo:", error)
-				continue
+					if error != nil {
+						fmt.Println("Erro ao ler o arquivo:", error)
+						continue
+					}
+
+					_, bestParticles := instance.Run()
+
+					file, err := os.Create(
+						fmt.Sprintf(
+							"./benchmark/stats_pso_mods/%s_%.2f-%.2f-%.2f_%d.csv",
+							instanceName,
+							weights[0],
+							weights[1],
+							weights[2],
+							swarmSize,
+						),
+					)
+					if err != nil {
+						fmt.Println("Erro ao criar arquivo de estatísticas:", err)
+						return
+					}
+					defer file.Close()
+
+					writer := csv.NewWriter(file)
+					defer writer.Flush()
+
+					writer.Write([]string{"iteration", "makespan"})
+					for i := 0; i < len(bestParticles); i++ {
+						writer.Write([]string{
+							strconv.Itoa(i),
+							strconv.Itoa(bestParticles[i].GetBestCost()),
+						})
+					}
+				}
 			}
 
-			_, bestParticles := instance.Run()
-
-			file, err := os.Create(fmt.Sprintf("./benchmark/stats_pso/%s.csv", instanceName))
-			if err != nil {
-				fmt.Println("Erro ao criar arquivo de estatísticas:", err)
-				return
-			}
-			defer file.Close()
-
-			writer := csv.NewWriter(file)
-			defer writer.Flush()
-
-			writer.Write([]string{"iteration", "makespan"})
-			for i := 0; i < len(bestParticles); i++ {
-				writer.Write([]string{
-					strconv.Itoa(i),
-					strconv.Itoa(bestParticles[i].GetBestCost()),
-				})
-			}
 		}
 	},
 }
