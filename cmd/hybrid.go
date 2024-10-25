@@ -6,6 +6,7 @@ package cmd
 import (
 	"fmt"
 	"job-shop-ga/hybrid"
+	"math/rand"
 
 	"github.com/spf13/cobra"
 )
@@ -29,7 +30,10 @@ var hybridCmd = &cobra.Command{
 			fmt.Println("Erro ao ler o arquivo:", err)
 			return
 		}
-		fmt.Println(instance)
+		source := rand.New(rand.NewSource(42))
+		ind := hybrid.NewRandomIndividual(*instance, source)
+		ind.ExpandToMatrix(*instance)
+		fmt.Println(ind)
 	},
 }
 

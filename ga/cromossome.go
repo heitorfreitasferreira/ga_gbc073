@@ -25,7 +25,7 @@ func GenerateCromossome(instance *JobShopInstance) Cromossome {
 		}
 	}
 
-	shuffle(genome, instance.Rand)
+	Shuffle(genome, instance.Rand)
 
 	// Embaralhar os genes para criar um indivíduo aleatório (aqui pode usar alguma função de shuffle se necessário)
 	// shuffle(genome) // Se precisar de embaralhamento

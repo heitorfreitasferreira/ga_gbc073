@@ -7,7 +7,7 @@ func (instance *JobShopInstance) Run() ([]int, int) {
 
 	for i := 0; i < instance.maxGenerations; i++ {
 		// Emabaralha a população
-		shuffle(instance.Population, instance.Rand)
+		Shuffle(instance.Population, instance.Rand)
 
 		children := make([]*Cromossome, 0)
 		for j := 0; j < int(float64(instance.populationSize)*instance.crossoverRate); j += 2 {
@@ -49,7 +49,7 @@ func (instance *JobShopInstance) RunModMutation() ([]int, int) {
 
 	for i := 0; i < instance.maxGenerations; i++ {
 		// Emabaralha a população
-		shuffle(instance.Population, instance.Rand)
+		Shuffle(instance.Population, instance.Rand)
 
 		children := make([]*Cromossome, 0)
 		for j := 0; j < int(float64(instance.populationSize)*instance.crossoverRate); j += 2 {
@@ -92,7 +92,7 @@ func (instance *JobShopInstance) RunModTournament() ([]int, int) {
 
 	for i := 0; i < instance.maxGenerations; i++ {
 		// Emabaralha a população
-		shuffle(instance.Population, instance.Rand)
+		Shuffle(instance.Population, instance.Rand)
 
 		children := make([]*Cromossome, 0)
 		for j := 0; j < int(float64(instance.populationSize)*instance.crossoverRate); j += 2 {
@@ -134,7 +134,7 @@ func (instance *JobShopInstance) RunModTournamentMutation() ([]int, int) {
 
 	for i := 0; i < instance.maxGenerations; i++ {
 		// Emabaralha a população
-		shuffle(instance.Population, instance.Rand)
+		Shuffle(instance.Population, instance.Rand)
 
 		children := make([]*Cromossome, 0)
 		for j := 0; j < int(float64(instance.populationSize)*instance.crossoverRate); j += 2 {
@@ -177,7 +177,7 @@ func (instance *JobShopInstance) RunModRoulette() ([]int, int) {
 
 	for i := 0; i < instance.maxGenerations; i++ {
 		// Emabaralha a população
-		shuffle(instance.Population, instance.Rand)
+		Shuffle(instance.Population, instance.Rand)
 
 		children := make([]*Cromossome, 0)
 		for j := 0; j < int(float64(instance.populationSize)*instance.crossoverRate); j += 2 {
@@ -219,7 +219,7 @@ func (instance *JobShopInstance) RunModRouletteMutation() ([]int, int) {
 
 	for i := 0; i < instance.maxGenerations; i++ {
 		// Emabaralha a população
-		shuffle(instance.Population, instance.Rand)
+		Shuffle(instance.Population, instance.Rand)
 
 		children := make([]*Cromossome, 0)
 		for j := 0; j < int(float64(instance.populationSize)*instance.crossoverRate); j += 2 {
