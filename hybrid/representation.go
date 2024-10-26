@@ -1,15 +1,13 @@
 package hybrid
 
 import (
-	"job-shop-ga/ga"
 	"math"
-	"math/rand"
 	"strconv"
 )
 
-type Individual [5][]int
+type Cromossome [5][]int
 
-func (ind Individual) String() string {
+func (ind Cromossome) String() string {
 	str := ""
 	for i := 0; i < 5; i++ {
 		for j := 0; j < len(ind[0]); j++ {
@@ -19,20 +17,18 @@ func (ind Individual) String() string {
 	}
 	return str
 }
-func NewRandomIndividual(instance JobShopInstance, source *rand.Rand) Individual {
+
+func newIndividual(instance JobShopInstance, sequence []int) Cromossome {
 	size := instance.numJobs * instance.numMachines
 	inst := make([][]int, 5)
 	for i := range inst {
 		inst[i] = make([]int, size)
 	}
-	for i := 0; i < size; i++ {
-		inst[0][i] = i
-	}
-	ga.Shuffle(inst[0], source)
-	return Individual(inst)
+	inst[0] = sequence
+	return Cromossome(inst)
 }
 
-func (ind Individual) ExpandToMatrix(instance JobShopInstance) {
+func (ind Cromossome) expandToMatrix(instance JobShopInstance) {
 	// Assumindo q ind[0] está certo e instanciado e é o individuo
 
 	for i, operation := range ind[0] {
@@ -46,5 +42,30 @@ func (ind Individual) ExpandToMatrix(instance JobShopInstance) {
 		ind[3][i] = machine
 		ind[4][i] = time
 	}
+}
 
+func (ind Cromossome) calcMakespan(instance JobShopInstance) int {
+	// Assumindo q ind[0] está certo e instanciado e é o individuo
+	machineTime := make([]int, instance.numMachines)
+	jobTime := make([]int, instance.numJobs)
+	for i := range ind[0] {
+		job := ind[1][i]
+		machine := ind[3][i]
+		time := ind[4][i]
+
+		startTime := int(math.Max(float64(machineTime[machine]), float64(jobTime[job])))
+		finishTime := startTime + time
+
+		machineTime[machine] = finishTime
+		jobTime[job] = finishTime
+	}
+
+	max := math.MinInt
+
+	for _, time := range jobTime {
+		if time > max {
+			max = time
+		}
+	}
+	return max
 }
