@@ -10,6 +10,7 @@ type pso struct {
 	gBest         []float64
 	gBestSequence []int
 	gBestFitness  float64
+	gBestMakespan int
 	iteration     int
 	instance      *JobShopInstance
 
@@ -17,23 +18,22 @@ type pso struct {
 	PsoParams
 }
 
-func newPso(instance *JobShopInstance, params PsoParams, popSize int, source *rand.Rand) *pso {
+func newPso(instance *JobShopInstance, params Parameters, source *rand.Rand) *pso {
 	dimension := instance.numJobs * instance.numMachines
 	psoInst := &pso{
-		particles:       make([]particle, popSize),
+		particles:       make([]particle, params.POPULATION_SIZE),
 		gBest:           make([]float64, dimension),
 		gBestSequence:   make([]int, dimension),
-		gBestFitness:    math.MaxFloat64,
+		gBestFitness:    -1.0,
+		gBestMakespan:   math.MaxInt,
 		instance:        instance,
-		PsoParams:       params,
-		POPULATION_SIZE: popSize,
+		PsoParams:       params.PsoParams,
+		POPULATION_SIZE: params.POPULATION_SIZE,
 	}
 
 	// Inicializa população conforme seção 2.3
 	for i := range psoInst.particles {
-		psoInst.particles[i] = newParticle(dimension, source)
-		psoInst.particles[i].updateSequence()
-		psoInst.evalParticle(&psoInst.particles[i])
+		psoInst.particles[i] = randomParticle(params, *instance, source)
 	}
 
 	return psoInst
@@ -51,15 +51,14 @@ func (psoInst *pso) getInitialPopulation(source *rand.Rand) ([]Cromossome, Resul
 			psoInst.evalParticle(&psoInst.particles[j])
 		}
 		bestFitness[i] = psoInst.gBestFitness
-		ind := newCromossome(*psoInst.instance, psoInst.gBestSequence)
-		bestMakespans[i] = ind.calcMakespan(*psoInst.instance)
+		bestMakespans[i] = psoInst.gBestMakespan
 	}
 
 	// Mapeia os resultados do PSO para a representação do GA
 	initialPopulation := make([]Cromossome, psoInst.POPULATION_SIZE)
 
-	for i := range psoInst.particles {
-		initialPopulation[i] = newCromossome(*psoInst.instance, psoInst.particles[i].seq)
+	for i, particle := range psoInst.particles {
+		initialPopulation[i] = particle.Cromossome
 	}
 
 	return initialPopulation, Result{BestMakespans: bestMakespans, BestFitness: bestFitness}
@@ -81,13 +80,12 @@ func (psoInst *pso) updateParticle(part *particle, source *rand.Rand) {
 		part.pos[i] += part.vel[i]
 	}
 
-	part.updateSequence()
+	part.updateCromossome(*psoInst.instance, psoInst.Alpha)
 }
 
 func (h *pso) evalParticle(p *particle) {
-	ind := newCromossome(*h.instance, p.seq)
 
-	p.fitness, p.makespan = fitness(ind, *h.instance, h.Alpha)
+	p.setFitness(*h.instance, h.Alpha)
 
 	if p.fitness > p.pBestFitness {
 		p.pBestFitness = p.fitness
@@ -96,19 +94,20 @@ func (h *pso) evalParticle(p *particle) {
 
 	if p.fitness > h.gBestFitness {
 		h.gBestFitness = p.fitness
+		h.gBestMakespan = p.makespan
 		copy(h.gBest, p.pos)
-		copy(h.gBestSequence, p.seq)
+		copy(h.gBestSequence, p.infoMatrix[0])
 	}
 }
 
-func fitness(ind Cromossome, instance JobShopInstance, alpha float64) (float64, int) {
+func (ind *Cromossome) setFitness(instance JobShopInstance, alpha float64) {
 	makespan := ind.calcMakespan(instance)
 
 	M := 0.0
-	for i := range ind[0] {
-		M += float64(ind[4][i])
+	for i := range ind.infoMatrix[0] {
+		M += float64(ind.infoMatrix[4][i])
 	}
 	M /= float64(instance.numMachines)
 
-	return alpha * M / float64(makespan), makespan
+	ind.fitness, ind.makespan = alpha*M/float64(makespan), makespan
 }

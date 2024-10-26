@@ -14,7 +14,7 @@ type particle struct {
 	pBestFitness float64
 }
 
-func newParticle(params Parameters, instance JobShopInstance, source *rand.Rand) particle {
+func randomParticle(params Parameters, instance JobShopInstance, source *rand.Rand) particle {
 	dimension := instance.numJobs * instance.numMachines
 	position := make([]float64, dimension)
 	velocity := make([]float64, dimension)
@@ -29,17 +29,20 @@ func newParticle(params Parameters, instance JobShopInstance, source *rand.Rand)
 		vel:          velocity,
 		pBestPos:     position,
 		pBestFitness: math.MinInt,
-		Cromossome:   newCromossome(instance, position, alpha),
+		Cromossome:   newCromossome(instance, getSequence(position), params.Alpha),
 	}
 }
+func (part *particle) updateCromossome(instance JobShopInstance, alpha float64) {
+	part.Cromossome = newCromossome(instance, getSequence(part.pos), alpha)
+}
 
-func (p particle) updateSequence() {
+func getSequence(pos []float64) []int {
 	type pair struct {
 		value float64
 		index int
 	}
-	pairs := make([]pair, len(p.pos))
-	for i, v := range p.pos {
+	pairs := make([]pair, len(pos))
+	for i, v := range pos {
 		pairs[i] = pair{v, i}
 	}
 
@@ -52,7 +55,9 @@ func (p particle) updateSequence() {
 	for i, p := range pairs {
 		order[p.value] = i
 	}
-	for i, pos := range p.pos {
-		p.seq[i] = order[pos]
+	seq := make([]int, len(pos))
+	for i, pos := range pos {
+		seq[i] = order[pos]
 	}
+	return seq
 }

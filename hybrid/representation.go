@@ -34,10 +34,11 @@ func newCromossome(instance JobShopInstance, sequence []int, alpha float64) Crom
 
 	matrix := infoMatrix(inst)
 	matrix.expandToMatrix(instance)
-	fitnessValue, makespanValue := fitness(matrix, instance, alpha)
 
-	return Cromossome{infoMatrix: matrix, fitness: fitnessValue, makespan: makespanValue}
-
+	crom := Cromossome{infoMatrix: matrix}
+	crom.expandToMatrix(instance)
+	crom.setFitness(instance, alpha)
+	return crom
 }
 
 func (matrix infoMatrix) expandToMatrix(instance JobShopInstance) {

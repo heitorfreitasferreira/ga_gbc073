@@ -65,56 +65,37 @@ func (res Result) SaveCsv(instanceName string) {
 
 func Run(inst *JobShopInstance, source *rand.Rand, params Parameters) (Result, Result) {
 	res := make([]Result, 2)
-	psoInst := newPso(inst, params.PsoParams, params.POPULATION_SIZE, source)
-	var cromossomes []Cromossome
+	psoInst := newPso(inst, params, source)
+	cromossomes := make([]Cromossome, params.POPULATION_SIZE)
 	cromossomes, res[0] = psoInst.getInitialPopulation(source)
-
-	type individual struct {
-		Cromossome
-		fitness  float64
-		makespan int
-	}
-
-	individuals := make([]individual, params.POPULATION_SIZE)
-	for i := range individuals {
-		individuals[i].Cromossome = cromossomes[i]
-		individuals[i].fitness, individuals[i].makespan = fitness(individuals[i].Cromossome, *inst, params.Alpha)
-	}
 
 	for i := 0; i < params.GA_MAX_ITER; i++ {
 		// Crossover
-		for range individuals {
+		for range cromossomes {
 			if source.Float64() < params.CrossoverRate {
 				p1Idx, p2Idx := source.Intn(params.POPULATION_SIZE), source.Intn(params.POPULATION_SIZE)
 				cut := source.Intn(inst.numJobs * inst.numMachines)
-				off1, off2 := crossover(individuals[p1Idx].Cromossome, individuals[p2Idx].Cromossome, cut)
+				c1, c2 := crossover(cromossomes[p1Idx], cromossomes[p2Idx], cut, *inst)
 
-				fitness1, makespan1 := fitness(off1, *inst, params.Alpha)
-				fitness2, makespan2 := fitness(off2, *inst, params.Alpha)
-
-				individuals = append(individuals, individual{Cromossome: off1, fitness: fitness1, makespan: makespan1})
-				individuals = append(individuals, individual{Cromossome: off2, fitness: fitness2, makespan: makespan2})
+				cromossomes = append(cromossomes, c1)
+				cromossomes = append(cromossomes, c2)
 			}
-
-			// Mutação aleatória
-			for j := range individuals {
-				if source.Float64() < params.MutationRate {
-					sequence := individuals[j].Cromossome[0]
-					inverseMutation(sequence, source)
-					individuals[j].fitness, individuals[j].makespan = fitness(individuals[j].Cromossome, *inst, params.Alpha)
-				}
+		}
+		// Mutação aleatória
+		for i, ind := range cromossomes {
+			if source.Float64() < params.MutationRate {
+				inverseMutation(ind.infoMatrix[0], source)
+				cromossomes[i] = newCromossome(*inst, ind.infoMatrix[0], params.Alpha)
 			}
-
-			// Seleção elitista
-			sort.Slice(individuals, func(i, j int) bool {
-				return individuals[i].fitness > individuals[j].fitness
-			})
-			individuals = individuals[:params.POPULATION_SIZE]
-
 		}
 
-		res[1].BestMakespans = append(res[1].BestMakespans, individuals[0].makespan)
-		res[1].BestFitness = append(res[1].BestFitness, individuals[0].fitness)
+		// Seleção elitista
+		sort.Slice(cromossomes, func(i, j int) bool {
+			return cromossomes[i].fitness > cromossomes[j].fitness
+		})
+		cromossomes = cromossomes[:params.POPULATION_SIZE]
+		res[1].BestMakespans = append(res[1].BestMakespans, cromossomes[0].makespan)
+		res[1].BestFitness = append(res[1].BestFitness, cromossomes[0].fitness)
 	}
 	return res[0], res[1]
 }
