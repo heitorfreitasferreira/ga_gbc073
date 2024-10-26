@@ -82,6 +82,6 @@ func init() {
 	hybridCmd.Flags().Float64("c2", 2.0, "Social component")
 	hybridCmd.Flags().Int("pso_gen", 20, "Number of pso iterations")
 	hybridCmd.Flags().Float64("alpha", 0.5, "alpha")
-	hybridCmd.Flags().Float64("omega_max", 0.5, "max inertia")
-	hybridCmd.Flags().Float64("omega_min", 0.5, "min inertia")
+	hybridCmd.Flags().Float64("omega_min", 0.4, "min inertia")
+	hybridCmd.Flags().Float64("omega_max", 1.2, "max inertia")
 }

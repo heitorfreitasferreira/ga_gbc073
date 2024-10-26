@@ -71,13 +71,14 @@ func Run(inst *JobShopInstance, source *rand.Rand, params Parameters) (Result, R
 
 	type individual struct {
 		Cromossome
-		fitness float64
+		fitness  float64
+		makespan int
 	}
 
 	individuals := make([]individual, params.POPULATION_SIZE)
 	for i := range individuals {
 		individuals[i].Cromossome = cromossomes[i]
-		individuals[i].fitness = fitness(individuals[i].Cromossome, *inst, params.Alpha)
+		individuals[i].fitness, individuals[i].makespan = fitness(individuals[i].Cromossome, *inst, params.Alpha)
 	}
 
 	for i := 0; i < params.GA_MAX_ITER; i++ {
@@ -88,8 +89,11 @@ func Run(inst *JobShopInstance, source *rand.Rand, params Parameters) (Result, R
 				cut := source.Intn(inst.numJobs * inst.numMachines)
 				off1, off2 := crossover(individuals[p1Idx].Cromossome, individuals[p2Idx].Cromossome, cut)
 
-				individuals = append(individuals, individual{Cromossome: off1, fitness: fitness(off1, *inst, params.Alpha)})
-				individuals = append(individuals, individual{Cromossome: off2, fitness: fitness(off2, *inst, params.Alpha)})
+				fitness1, makespan1 := fitness(off1, *inst, params.Alpha)
+				fitness2, makespan2 := fitness(off2, *inst, params.Alpha)
+
+				individuals = append(individuals, individual{Cromossome: off1, fitness: fitness1, makespan: makespan1})
+				individuals = append(individuals, individual{Cromossome: off2, fitness: fitness2, makespan: makespan2})
 			}
 
 			// Mutação aleatória
@@ -97,7 +101,7 @@ func Run(inst *JobShopInstance, source *rand.Rand, params Parameters) (Result, R
 				if source.Float64() < params.MutationRate {
 					sequence := individuals[j].Cromossome[0]
 					inverseMutation(sequence, source)
-					individuals[j].fitness = fitness(individuals[j].Cromossome, *inst, params.Alpha)
+					individuals[j].fitness, individuals[j].makespan = fitness(individuals[j].Cromossome, *inst, params.Alpha)
 				}
 			}
 
@@ -107,10 +111,10 @@ func Run(inst *JobShopInstance, source *rand.Rand, params Parameters) (Result, R
 			})
 			individuals = individuals[:params.POPULATION_SIZE]
 
-			res[1].BestMakespans = append(res[1].BestMakespans, individuals[0].calcMakespan(*inst))
-			res[1].BestFitness = append(res[1].BestFitness, individuals[0].fitness)
-
 		}
+
+		res[1].BestMakespans = append(res[1].BestMakespans, individuals[0].makespan)
+		res[1].BestFitness = append(res[1].BestFitness, individuals[0].fitness)
 	}
 	return res[0], res[1]
 }

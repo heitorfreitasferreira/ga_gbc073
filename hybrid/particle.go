@@ -1,20 +1,21 @@
 package hybrid
 
 import (
+	"math"
 	"math/rand"
 	"sort"
 )
 
 type particle struct {
+	Cromossome
 	pos          []float64
 	vel          []float64
 	pBestPos     []float64
 	pBestFitness float64
-	fitness      float64
-	seq          []int // Sequência de operações após ordenação
 }
 
-func newParticle(dimension int, source *rand.Rand) particle {
+func newParticle(params Parameters, instance JobShopInstance, source *rand.Rand) particle {
+	dimension := instance.numJobs * instance.numMachines
 	position := make([]float64, dimension)
 	velocity := make([]float64, dimension)
 
@@ -26,10 +27,9 @@ func newParticle(dimension int, source *rand.Rand) particle {
 	return particle{
 		pos:          position,
 		vel:          velocity,
-		pBestPos:     make([]float64, dimension),
-		seq:          make([]int, dimension),
-		pBestFitness: -1,
-		fitness:      -1,
+		pBestPos:     position,
+		pBestFitness: math.MinInt,
+		Cromossome:   newCromossome(instance, position, alpha),
 	}
 }
 
