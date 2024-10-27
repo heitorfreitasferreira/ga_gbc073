@@ -37,27 +37,22 @@ func (part *particle) updateCromossome(instance JobShopInstance, alpha float64) 
 }
 
 func getSequence(pos []float64) []int {
-	type pair struct {
-		value float64
-		index int
-	}
-	pairs := make([]pair, len(pos))
-	for i, v := range pos {
-		pairs[i] = pair{v, i}
+	// Cria um array de índices
+	indices := make([]int, len(pos))
+	for i := range indices {
+		indices[i] = i
 	}
 
-	sort.Slice(pairs, func(i, j int) bool {
-		return pairs[i].value < pairs[j].value
+	// Ordena os índices com base nos valores de pos
+	sort.Slice(indices, func(i, j int) bool {
+		return pos[indices[i]] < pos[indices[j]]
 	})
 
-	order := make(map[float64]int)
-
-	for i, p := range pairs {
-		order[p.value] = i
-	}
+	// Cria um array para os resultados
 	seq := make([]int, len(pos))
-	for i, pos := range pos {
-		seq[i] = order[pos]
+	for i, index := range indices {
+		seq[index] = i
 	}
+
 	return seq
 }

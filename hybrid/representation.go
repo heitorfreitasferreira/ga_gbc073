@@ -1,6 +1,7 @@
 package hybrid
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 )
@@ -58,10 +59,14 @@ func (matrix infoMatrix) expandToMatrix(instance JobShopInstance) {
 }
 
 func (ind infoMatrix) calcMakespan(instance JobShopInstance) int {
-	// Assumindo q ind[0] está certo e instanciado e é o individuo
 	machineTime := make([]int, instance.numMachines)
 	jobTime := make([]int, instance.numJobs)
-	for i := range ind[0] {
+
+	// TODO: Verificar porque a sequencia em ind[0] chega com valores repetidos aqui!!!
+	// Isso faz o calculo do makespan errado
+	fmt.Println(ind[0])
+
+	for _, i := range ind[0] {
 		job := ind[1][i]
 		machine := ind[3][i]
 		time := ind[4][i]
