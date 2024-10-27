@@ -38,7 +38,10 @@ var hybridCmd = &cobra.Command{
 			fmt.Println("Erro ao ler o arquivo:", err)
 			return
 		}
-		seed := 42
+		// Randomly generate a seed and print it.
+		// TODO: set seed as 42 when program is working properly.
+		seed := rand.Int()
+		fmt.Println("Seed:", seed)
 		source := rand.New(rand.NewSource(int64(seed)))
 
 		// Parâmetros do GA
