@@ -62,29 +62,29 @@ var hybridCmd = &cobra.Command{
 			},
 		}
 
-		rPso, rGa := hybrid.Run(instance, source, params)
+		rGa, rPso := hybrid.Run(instance, source, params)
 
-		rPso.SaveCsv(instanceName + "_pso.csv")
-		rGa.SaveCsv(instanceName + "_ga.csv")
+		rPso.SaveCsv(instanceName + "_pso")
+		rGa.SaveCsv(instanceName + "_ga")
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(hybridCmd)
-	hybridCmd.Flags().String("instance", "./benchmark/instances/ft06", "Nome da instância do problema")
+	hybridCmd.Flags().String("instance", "./benchmark/instances/ft10", "Nome da instância do problema")
 
 	// GA flags
 	hybridCmd.Flags().Float64("cross", 0.65, "Taxa de crossover")
 	hybridCmd.Flags().Float64("mut", 0.95, "Taxa de mutação")
 	hybridCmd.Flags().Int("pop", 100, "Tamanho da população")
-	hybridCmd.Flags().Int("ga_gen", 200, "Número de gerações")
+	hybridCmd.Flags().Int("ga_gen", 20, "Número de gerações")
 
 	// PSO flags
 	hybridCmd.Flags().Float64("w", 0.5, "Inertia")
 	hybridCmd.Flags().Float64("c1", 1.0, "Cognitive component")
 	hybridCmd.Flags().Float64("c2", 2.0, "Social component")
-	hybridCmd.Flags().Int("pso_gen", 20, "Number of pso iterations")
-	hybridCmd.Flags().Float64("alpha", 0.5, "alpha")
+	hybridCmd.Flags().Int("pso_gen", 200, "Number of pso iterations")
+	hybridCmd.Flags().Float64("alpha", 1.0, "alpha")
 	hybridCmd.Flags().Float64("omega_min", 0.4, "min inertia")
 	hybridCmd.Flags().Float64("omega_max", 1.2, "max inertia")
 }
