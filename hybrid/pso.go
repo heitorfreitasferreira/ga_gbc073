@@ -8,7 +8,6 @@ import (
 type pso struct {
 	particles     []particle
 	gBest         []float64
-	gBestSequence []int
 	gBestFitness  float64
 	gBestMakespan int
 	iteration     int
@@ -23,7 +22,6 @@ func newPso(instance *JobShopInstance, params Parameters, source *rand.Rand) *ps
 	psoInst := &pso{
 		particles:       make([]particle, params.POPULATION_SIZE),
 		gBest:           make([]float64, dimension),
-		gBestSequence:   make([]int, dimension),
 		gBestFitness:    -1.0,
 		gBestMakespan:   math.MaxInt,
 		instance:        instance,
@@ -39,7 +37,7 @@ func newPso(instance *JobShopInstance, params Parameters, source *rand.Rand) *ps
 	return psoInst
 }
 
-func (psoInst *pso) getInitialPopulation(source *rand.Rand) ([]Cromossome, Result) {
+func (psoInst *pso) getInitialPopulation(source *rand.Rand) ([]Individual, Result) {
 	// Executa o PSO conforme seção 2.3
 
 	bestMakespans := make([]int, psoInst.PSO_MAX_ITER)
@@ -55,10 +53,10 @@ func (psoInst *pso) getInitialPopulation(source *rand.Rand) ([]Cromossome, Resul
 	}
 
 	// Mapeia os resultados do PSO para a representação do GA
-	initialPopulation := make([]Cromossome, psoInst.POPULATION_SIZE)
+	initialPopulation := make([]Individual, psoInst.POPULATION_SIZE)
 
 	for i, particle := range psoInst.particles {
-		initialPopulation[i] = particle.Cromossome
+		initialPopulation[i] = particle.Individual
 	}
 
 	return initialPopulation, Result{BestMakespans: bestMakespans, BestFitness: bestFitness}
@@ -84,9 +82,6 @@ func (psoInst *pso) updateParticle(part *particle, source *rand.Rand) {
 }
 
 func (h *pso) evalParticle(p *particle) {
-
-	p.setFitness(*h.instance, h.Alpha)
-
 	if p.fitness > p.pBestFitness {
 		p.pBestFitness = p.fitness
 		copy(p.pBestPos, p.pos)
@@ -96,11 +91,10 @@ func (h *pso) evalParticle(p *particle) {
 		h.gBestFitness = p.fitness
 		h.gBestMakespan = p.makespan
 		copy(h.gBest, p.pos)
-		copy(h.gBestSequence, p.infoMatrix[0])
 	}
 }
 
-func (ind *Cromossome) setFitness(instance JobShopInstance, alpha float64) {
+func (ind *Individual) setFitness(instance JobShopInstance, alpha float64) {
 	makespan := ind.calcMakespan(instance)
 
 	M := 0.0

@@ -7,7 +7,7 @@ import (
 )
 
 type particle struct {
-	Cromossome
+	Individual
 	pos          []float64
 	vel          []float64
 	pBestPos     []float64
@@ -29,11 +29,12 @@ func randomParticle(params Parameters, instance JobShopInstance, source *rand.Ra
 		vel:          velocity,
 		pBestPos:     position,
 		pBestFitness: math.MinInt,
-		Cromossome:   newCromossome(instance, getSequence(position), params.Alpha),
+		Individual:   newCromossome(instance, getSequence(position), params.Alpha),
 	}
 }
+
 func (part *particle) updateCromossome(instance JobShopInstance, alpha float64) {
-	part.Cromossome = newCromossome(instance, getSequence(part.pos), alpha)
+	part.Individual = newCromossome(instance, getSequence(part.pos), alpha)
 }
 
 func getSequence(pos []float64) []int {

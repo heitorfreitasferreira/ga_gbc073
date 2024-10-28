@@ -12,7 +12,7 @@ type JobShopInstance struct {
 	Name        string
 	numJobs     int
 	numMachines int
-	jobs        [][][2]int // Matriz contendo [tempo de processamento] para cada operação
+	jobs        [][][2]int // Matriz[Job][Operação][Máquina, Tempo]
 }
 
 func (instance JobShopInstance) String() string {

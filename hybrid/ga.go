@@ -64,10 +64,10 @@ func (res Result) SaveCsv(instanceName string) {
 }
 
 func Run(inst *JobShopInstance, source *rand.Rand, params Parameters) (Result, Result) {
-	res := make([]Result, 2)
+	var res, resPso Result
 	psoInst := newPso(inst, params, source)
-	cromossomes := make([]Cromossome, params.POPULATION_SIZE)
-	cromossomes, res[0] = psoInst.getInitialPopulation(source)
+	cromossomes := make([]Individual, params.POPULATION_SIZE)
+	cromossomes, resPso = psoInst.getInitialPopulation(source)
 
 	for i := 0; i < params.GA_MAX_ITER; i++ {
 		// Crossover
@@ -94,8 +94,8 @@ func Run(inst *JobShopInstance, source *rand.Rand, params Parameters) (Result, R
 			return cromossomes[i].fitness > cromossomes[j].fitness
 		})
 		cromossomes = cromossomes[:params.POPULATION_SIZE]
-		res[1].BestMakespans = append(res[1].BestMakespans, cromossomes[0].makespan)
-		res[1].BestFitness = append(res[1].BestFitness, cromossomes[0].fitness)
+		res.BestMakespans = append(res.BestMakespans, cromossomes[0].makespan)
+		res.BestFitness = append(res.BestFitness, cromossomes[0].fitness)
 	}
-	return res[0], res[1]
+	return res, resPso
 }

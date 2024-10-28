@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-type Cromossome struct {
+type Individual struct {
 	infoMatrix
 	fitness  float64
 	makespan int
@@ -25,7 +25,7 @@ func (ind infoMatrix) String() string {
 	return str
 }
 
-func newCromossome(instance JobShopInstance, sequence []int, alpha float64) Cromossome {
+func newCromossome(instance JobShopInstance, sequence []int, alpha float64) Individual {
 	size := instance.numJobs * instance.numMachines
 	inst := make([][]int, 5)
 	for i := range inst {
@@ -36,7 +36,7 @@ func newCromossome(instance JobShopInstance, sequence []int, alpha float64) Crom
 	matrix := infoMatrix(inst)
 	matrix.expandToMatrix(instance)
 
-	crom := Cromossome{infoMatrix: matrix}
+	crom := Individual{infoMatrix: matrix}
 	crom.expandToMatrix(instance)
 	crom.setFitness(instance, alpha)
 	return crom

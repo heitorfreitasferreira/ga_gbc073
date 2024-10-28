@@ -2,7 +2,7 @@ package hybrid
 
 import "math/rand"
 
-func crossover(ind1, ind2 Cromossome, cut int, instance JobShopInstance) (Cromossome, Cromossome) {
+func crossover(ind1, ind2 Individual, cut int, instance JobShopInstance) (Individual, Individual) {
 	if cut < 0 || cut > len(ind1.infoMatrix[0]) {
 		panic("Invalid cut point")
 	}
