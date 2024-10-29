@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"job-shop-ga/hybrid"
 	"math/rand"
-	"strings"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -18,73 +18,119 @@ var hybridCmd = &cobra.Command{
 	Short: "PSO/GA",
 	Long:  `Inicializa a população do GA com o PSO`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Flags
-		filePath, _ := cmd.Flags().GetString("instance")
-		crossoverRate, _ := cmd.Flags().GetFloat64("cross")
-		mutationRate, _ := cmd.Flags().GetFloat64("mut")
-		populationSize, _ := cmd.Flags().GetInt("pop")
-		maxGenerations, _ := cmd.Flags().GetInt("ga_gen")
-		c1, _ := cmd.Flags().GetFloat64("c1")
-		c2, _ := cmd.Flags().GetFloat64("c2")
-		maxPsoIters, _ := cmd.Flags().GetInt("pso_gen")
-		alpha, _ := cmd.Flags().GetFloat64("alpha")
-		omegaMax, _ := cmd.Flags().GetFloat64("omega_max")
-		omegaMin, _ := cmd.Flags().GetFloat64("omega_min")
+		instances := []string{
+			"ft06", "ft10", "ft20", "la01", "la06", "la11", "la16", "la21",
+		}
+		modifications := []string{
+			"original", "lower_mutation", "c1_and_c2_sum_4", "pop_size_iter",
+		}
+		parameters := []hybrid.Parameters{
+			{
+				GaParams: hybrid.GaParams{
+					CrossoverRate: 0.65,
+					MutationRate:  0.95,
+					GA_MAX_ITER:   200,
+				},
+				POPULATION_SIZE: 100,
+				PsoParams: hybrid.PsoParams{
+					C1:           1.0,
+					C2:           2.0,
+					OMEGA_MIN:    0.4,
+					OMEGA_MAX:    1.2,
+					Alpha:        1.0,
+					PSO_MAX_ITER: 20,
+				},
+			},
+			{
+				GaParams: hybrid.GaParams{
+					CrossoverRate: 0.65,
+					MutationRate:  0.50,
+					GA_MAX_ITER:   200,
+				},
+				POPULATION_SIZE: 100,
+				PsoParams: hybrid.PsoParams{
+					C1:           1.0,
+					C2:           2.0,
+					OMEGA_MIN:    0.4,
+					OMEGA_MAX:    1.2,
+					Alpha:        1.0,
+					PSO_MAX_ITER: 20,
+				},
+			},
+			{
+				GaParams: hybrid.GaParams{
+					CrossoverRate: 0.65,
+					MutationRate:  0.95,
+					GA_MAX_ITER:   200,
+				},
+				POPULATION_SIZE: 100,
+				PsoParams: hybrid.PsoParams{
+					C1:           1.5,
+					C2:           2.5,
+					OMEGA_MIN:    0.4,
+					OMEGA_MAX:    1.2,
+					Alpha:        1.0,
+					PSO_MAX_ITER: 20,
+				},
+			},
+			{
+				GaParams: hybrid.GaParams{
+					CrossoverRate: 0.65,
+					MutationRate:  0.95,
+					GA_MAX_ITER:   350,
+				},
+				POPULATION_SIZE: 150,
+				PsoParams: hybrid.PsoParams{
+					C1:           1.0,
+					C2:           2.0,
+					OMEGA_MIN:    0.4,
+					OMEGA_MAX:    1.2,
+					Alpha:        1.0,
+					PSO_MAX_ITER: 50,
+				},
+			},
+		}
 
-		// Ler instância do problema
-		instanceName := strings.Split(filePath, "/")[len(strings.Split(filePath, "/"))-1]
-		instance, err := hybrid.GetInstanceFromFile(filePath)
+		// Create stats folder
+		statsFolder := "./benchmark/stats/"
+		err := os.MkdirAll(statsFolder, os.ModePerm)
 		if err != nil {
-			fmt.Println("Erro ao ler o arquivo:", err)
-			return
-		}
-		// Randomly generate a seed and print it.
-		// TODO: set seed as 42 when program is working properly.
-		seed := rand.Int()
-		fmt.Println("Seed:", seed)
-		source := rand.New(rand.NewSource(int64(4502730368040452047)))
-
-		// Parâmetros do GA
-		params := hybrid.Parameters{
-			GaParams: hybrid.GaParams{
-				CrossoverRate: crossoverRate,
-				MutationRate:  mutationRate,
-				GA_MAX_ITER:   maxGenerations,
-			},
-			POPULATION_SIZE: populationSize,
-			PsoParams: hybrid.PsoParams{
-				C1:           c1,
-				C2:           c2,
-				OMEGA_MIN:    omegaMax,
-				OMEGA_MAX:    omegaMin,
-				Alpha:        alpha,
-				PSO_MAX_ITER: maxPsoIters,
-			},
+			fmt.Println("Error creating stats folder")
+			os.Exit(1)
 		}
 
-		rGa, rPso := hybrid.Run(instance, source, params)
+		filePrefix := "./benchmark/instances/"
+		for _, instanceName := range instances {
+			filePath := filePrefix + instanceName
+			for j, params := range parameters {
+				modificationName := modifications[j]
+				fmt.Printf("Excutando instância %v (%v)...\n", instanceName, modificationName)
 
-		rPso.SaveCsv(instanceName + "_pso")
-		rGa.SaveCsv(instanceName + "_ga")
+				instance, err := hybrid.GetInstanceFromFile(filePath)
+				if err != nil {
+					fmt.Printf("Erro ao ler o arquivo: %v", filePath)
+					os.Exit(1)
+				}
+
+				source := rand.New(rand.NewSource(int64(4502730368040452047)))
+
+				rGa, rPso := hybrid.Run(instance, source, params)
+				modificationFolder := statsFolder + modificationName + "/"
+				// Create modification folder
+				err = os.MkdirAll(modificationFolder, os.ModePerm)
+				if err != nil {
+					fmt.Println("Erro ao criar diretório para salvar dados.")
+					os.Exit(1)
+				}
+
+				fileName := modificationFolder + instanceName
+				rPso.SaveCsv(fileName + "_pso")
+				rGa.SaveCsv(fileName + "_ga")
+			}
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(hybridCmd)
-	hybridCmd.Flags().String("instance", "./benchmark/instances/ft06", "Nome da instância do problema")
-
-	// GA flags
-	hybridCmd.Flags().Float64("cross", 0.65, "Taxa de crossover")
-	hybridCmd.Flags().Float64("mut", 0.95, "Taxa de mutação")
-	hybridCmd.Flags().Int("pop", 100, "Tamanho da população")
-	hybridCmd.Flags().Int("ga_gen", 20, "Número de gerações")
-
-	// PSO flags
-	hybridCmd.Flags().Float64("w", 0.5, "Inertia")
-	hybridCmd.Flags().Float64("c1", 1.0, "Cognitive component")
-	hybridCmd.Flags().Float64("c2", 2.0, "Social component")
-	hybridCmd.Flags().Int("pso_gen", 200, "Number of pso iterations")
-	hybridCmd.Flags().Float64("alpha", 1.0, "alpha")
-	hybridCmd.Flags().Float64("omega_min", 0.4, "min inertia")
-	hybridCmd.Flags().Float64("omega_max", 1.2, "max inertia")
 }

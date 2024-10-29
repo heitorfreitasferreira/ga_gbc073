@@ -23,6 +23,7 @@ go.work.sum
 
 # env file
 .env
+.venv/
 
 # Benchmark files
 benchmark/

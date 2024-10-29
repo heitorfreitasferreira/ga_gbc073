@@ -44,8 +44,8 @@ type Result struct {
 	BestFitness   []float64
 }
 
-func (res Result) SaveCsv(instanceName string) {
-	file, err := os.Create(fmt.Sprintf("./benchmark/stats_h/%s.csv", instanceName))
+func (res Result) SaveCsv(filePath string) {
+	file, err := os.Create(filePath + ".csv")
 	if err != nil {
 		fmt.Println("Erro ao criar arquivo de estatísticas:", err)
 		panic(err)
@@ -96,12 +96,7 @@ func Run(inst *JobShopInstance, source *rand.Rand, params Parameters) (Result, R
 		cromossomes = cromossomes[:params.POPULATION_SIZE]
 		res.BestMakespans = append(res.BestMakespans, cromossomes[0].makespan)
 		res.BestFitness = append(res.BestFitness, cromossomes[0].fitness)
-		if i == params.GA_MAX_ITER-2 {
-			fmt.Printf("Melhor makespan do GA: %d\n", cromossomes[0].makespan)
-		}
 	}
-	fmt.Printf("%v\n", inst)
-	fmt.Printf("Melhor makespan: %d\n", cromossomes[0].makespan)
-	fmt.Printf("Matriz do melhor cromossomo:\n%v\n", cromossomes[0].infoMatrix)
+
 	return res, resPso
 }
