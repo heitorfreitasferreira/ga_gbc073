@@ -73,11 +73,48 @@ func (ind infoMatrix) calcMakespan(instance JobShopInstance) int {
 	machineTime := make([]int, instance.numMachines)
 	jobTime := make([]int, instance.numJobs)
 
-	var greatestFinishingTime int
+	type tuple struct {
+		generalOperation, job, jobOperation, machine, time int
+	}
+	oldOrder := make([]tuple, len(ind[0]))
 	for i := range ind[0] {
-		job := ind[1][i]
-		machine := ind[3][i]
-		time := ind[4][i]
+		oldOrder[i] = tuple{
+			generalOperation: ind[0][i],
+			job:              ind[1][i],
+			jobOperation:     ind[2][i],
+			machine:          ind[3][i],
+			time:             ind[4][i],
+		}
+	}
+
+	actual := make([]tuple, len(ind[0]))
+
+	used := make([]bool, len(ind[0]))
+	nextOrderToExecute := make([]int, instance.numJobs)
+	scheduled := 0
+	i := 0
+	for scheduled < len(ind[0]) {
+		if i >= len(ind[0]) {
+			i = 0
+		}
+		if used[i] {
+			i++
+			continue
+		}
+		if nextOrderToExecute[oldOrder[i].job] == oldOrder[i].jobOperation {
+			actual[scheduled] = oldOrder[i]
+			used[i] = true
+			scheduled++
+			nextOrderToExecute[oldOrder[i].job]++
+		}
+		i++
+	}
+
+	var greatestFinishingTime int
+	for _, tpl := range actual {
+		job := tpl.job
+		machine := tpl.machine
+		time := tpl.time
 
 		startTime := int(math.Max(float64(machineTime[machine]), float64(jobTime[job])))
 		finishTime := startTime + time
