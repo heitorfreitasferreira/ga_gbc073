@@ -42,7 +42,7 @@ var hybridCmd = &cobra.Command{
 		// TODO: set seed as 42 when program is working properly.
 		seed := rand.Int()
 		fmt.Println("Seed:", seed)
-		source := rand.New(rand.NewSource(int64(seed)))
+		source := rand.New(rand.NewSource(int64(4502730368040452047)))
 
 		// Parâmetros do GA
 		params := hybrid.Parameters{
@@ -71,7 +71,7 @@ var hybridCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(hybridCmd)
-	hybridCmd.Flags().String("instance", "./benchmark/instances/ft10", "Nome da instância do problema")
+	hybridCmd.Flags().String("instance", "./benchmark/instances/ft06", "Nome da instância do problema")
 
 	// GA flags
 	hybridCmd.Flags().Float64("cross", 0.65, "Taxa de crossover")

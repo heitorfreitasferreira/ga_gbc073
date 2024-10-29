@@ -3,7 +3,6 @@ package hybrid
 import (
 	"fmt"
 	"math"
-	"strconv"
 )
 
 type Individual struct {
@@ -18,7 +17,7 @@ func (ind infoMatrix) String() string {
 	str := ""
 	for i := 0; i < 5; i++ {
 		for j := 0; j < len(ind[0]); j++ {
-			str += strconv.Itoa(ind[i][j]) + ", "
+			str += fmt.Sprintf("%2d ", ind[i][j])
 		}
 		str += "\n"
 	}
@@ -47,8 +46,19 @@ func (matrix infoMatrix) expandToMatrix(instance JobShopInstance) {
 
 	for i, operation := range matrix[0] {
 		job := int(math.Floor(float64(operation) / float64(instance.numMachines)))
+		if job > instance.numJobs-1 { // -1 pois a contagem começa em 0
+			panic(fmt.Errorf("job nr {%d} para um problema com {%d} jobs \n\n%v\nMatrix expandida:\n%v\n%v\n%v\n%v\n%v", job, instance.numJobs, instance, matrix[0], matrix[1], matrix[2], matrix[3], matrix[4]))
+		}
 		jobOperation := operation % instance.numMachines
+		if jobOperation > instance.numMachines-1 { // -1 pois a contagem começa em 0
+			panic(fmt.Errorf("operação nr {%d} para um problema com {%d} máquinas \n\n%v\nMatrix expandida:\n%v\n%v\n%v\n%v\n%v", jobOperation, instance.numMachines, instance, matrix[0], matrix[1], matrix[2], matrix[3], matrix[4]))
+		}
 		machine := instance.jobs[job][jobOperation][0]
+
+		if machine > instance.numMachines-1 { // -1 pois a contagem começa em 0
+			panic(fmt.Errorf("máquina nr {%d} para um problema com {%d} máquinas \n\n%v\nMatrix expandida:\n%v\n%v\n%v\n%v\n%v", machine, instance.numMachines, instance, matrix[0], matrix[1], matrix[2], matrix[3], matrix[4]))
+		}
+
 		time := instance.jobs[job][jobOperation][1]
 
 		matrix[1][i] = job
@@ -59,14 +69,12 @@ func (matrix infoMatrix) expandToMatrix(instance JobShopInstance) {
 }
 
 func (ind infoMatrix) calcMakespan(instance JobShopInstance) int {
+
 	machineTime := make([]int, instance.numMachines)
 	jobTime := make([]int, instance.numJobs)
 
-	// TODO: Verificar porque a sequencia em ind[0] chega com valores repetidos aqui!!!
-	// Isso faz o calculo do makespan errado
-	fmt.Println(ind[0])
-
-	for _, i := range ind[0] {
+	var greatestFinishingTime int
+	for i := range ind[0] {
 		job := ind[1][i]
 		machine := ind[3][i]
 		time := ind[4][i]
@@ -76,14 +84,9 @@ func (ind infoMatrix) calcMakespan(instance JobShopInstance) int {
 
 		machineTime[machine] = finishTime
 		jobTime[job] = finishTime
-	}
-
-	max := math.MinInt
-
-	for _, time := range jobTime {
-		if time > max {
-			max = time
+		if finishTime > greatestFinishingTime {
+			greatestFinishingTime = finishTime
 		}
 	}
-	return max
+	return greatestFinishingTime
 }

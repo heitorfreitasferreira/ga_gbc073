@@ -16,7 +16,14 @@ type JobShopInstance struct {
 }
 
 func (instance JobShopInstance) String() string {
-	return fmt.Sprintf("Instance: %s\nJobs: %d\nMachines: %d\n\n %v", instance.Name, instance.numJobs, instance.numMachines, instance.jobs)
+	machineMatrix := ""
+	for i := range instance.jobs {
+		for j := range instance.jobs[i] {
+			machineMatrix += fmt.Sprintf("%2d %2d|", instance.jobs[i][j][0], instance.jobs[i][j][1])
+		}
+		machineMatrix += "\n"
+	}
+	return fmt.Sprintf("Instance: %s\nJobs: %d\nMachines: %d\n\n%s", instance.Name, instance.numJobs, instance.numMachines, machineMatrix)
 }
 
 // GetInstanceFromFile lê uma instância do problema de um arquivo de texto

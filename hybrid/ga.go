@@ -75,7 +75,7 @@ func Run(inst *JobShopInstance, source *rand.Rand, params Parameters) (Result, R
 			if source.Float64() < params.CrossoverRate {
 				p1Idx, p2Idx := source.Intn(params.POPULATION_SIZE), source.Intn(params.POPULATION_SIZE)
 				cut := source.Intn(inst.numJobs * inst.numMachines)
-				c1, c2 := crossover(cromossomes[p1Idx], cromossomes[p2Idx], cut, *inst)
+				c1, c2 := crossover(cromossomes[p1Idx], cromossomes[p2Idx], cut, *inst, params.Alpha)
 
 				cromossomes = append(cromossomes, c1)
 				cromossomes = append(cromossomes, c2)
@@ -96,6 +96,12 @@ func Run(inst *JobShopInstance, source *rand.Rand, params Parameters) (Result, R
 		cromossomes = cromossomes[:params.POPULATION_SIZE]
 		res.BestMakespans = append(res.BestMakespans, cromossomes[0].makespan)
 		res.BestFitness = append(res.BestFitness, cromossomes[0].fitness)
+		if i == params.GA_MAX_ITER-2 {
+			fmt.Printf("Melhor makespan do GA: %d\n", cromossomes[0].makespan)
+		}
 	}
+	fmt.Printf("%v\n", inst)
+	fmt.Printf("Melhor makespan: %d\n", cromossomes[0].makespan)
+	fmt.Printf("Matriz do melhor cromossomo:\n%v\n", cromossomes[0].infoMatrix)
 	return res, resPso
 }
