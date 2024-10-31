@@ -60,7 +60,7 @@ def plot_stats(stats_path):
         min_fitness = y.min()
         max_fitness = y.max()
         plt.figtext(0.1, 0.01, f"Min (best): {min_fitness}", ha="left", fontsize=10)
-        plt.figtext(0.9, 0.01, f"Max (best): {max_fitness}", ha="right", fontsize=10)
+        plt.figtext(0.9, 0.01, f"Max (worst): {max_fitness}", ha="right", fontsize=10)
         if optimun:
             plt.axhline(y=optimun, color="g", linestyle="--", label="Ótimo global")
         if upper_bound:
